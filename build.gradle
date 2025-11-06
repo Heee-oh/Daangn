@@ -37,6 +37,8 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	// uuidv7 사용
+	implementation 'com.fasterxml.uuid:java-uuid-generator:5.1.0'
 
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
