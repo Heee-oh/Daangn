@@ -22,6 +22,8 @@ public class Member extends BaseTimeEntity{
     // 이름
     private String name;
 
+    private String profileUrl;
+
     // UUIDv7 외부용 id
     @Column(columnDefinition = "BINARY(16)")
     private UUID publicId;
@@ -54,23 +56,14 @@ public class Member extends BaseTimeEntity{
         }
     }
     @Builder
-    public Member(String nickname, String name, String phoneNumber) {
+    public Member(String nickname, String name,String profileUrl, String phoneNumber) {
         this.nickname = nickname;
         this.name = name;
+        this.profileUrl = profileUrl;
         this.phoneNumber = phoneNumber;
         this.mannerScore = 365;
         this.status = MemberStatus.ACTIVE;
     }
 
-    @QueryProjection
-    public Member(long id, String nickname, String name, UUID publicId, int mannerScore, String phoneNumber, String tag, MemberStatus status) {
-        this.id = id;
-        this.nickname = nickname;
-        this.name = name;
-        this.publicId = publicId;
-        this.mannerScore = mannerScore;
-        this.phoneNumber = phoneNumber;
-        this.tag = tag;
-        this.status = status;
-    }
+
 }

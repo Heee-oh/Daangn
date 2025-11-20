@@ -14,6 +14,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 특정 유저 조회
     Optional<Member> findMemberById(Long id);
 
+    boolean existsMemberById(Long id);
+
     // 특정 상태의 회원 전부 조회
     Page<Member> findMemberByIdAndStatusIs(Long id, MemberStatus status, Pageable pageable);
 

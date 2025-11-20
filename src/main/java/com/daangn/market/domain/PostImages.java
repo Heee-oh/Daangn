@@ -15,6 +15,6 @@ public class PostImages {
 
     private String imgSrc;
 
-    private int sort_order;
+    private int sortOrder;
 
 }

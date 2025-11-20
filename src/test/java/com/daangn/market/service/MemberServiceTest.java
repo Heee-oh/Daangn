@@ -1,7 +1,7 @@
 package com.daangn.market.service;
 
 import com.daangn.market.domain.Member;
-import com.daangn.market.dto.MemberSignDto;
+import com.daangn.market.dto.request.MemberSignDto;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ class MemberServiceTest {
     @Test
     @Transactional
     void saveAndFind() {
-        Member member = service.savePost(new MemberSignDto("abc", "aaa", "010-2222-2222"));
+        Member member = service.saveMember(new MemberSignDto("abc", "aaa", "010-2222-2222"));
         Member member1 = service.findMember(member.getId());
 
         log.info("tag = {}", member.getTag());

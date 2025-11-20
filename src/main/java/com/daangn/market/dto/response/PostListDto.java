@@ -1,6 +1,7 @@
-package com.daangn.market.dto;
+package com.daangn.market.dto.response;
 
-import com.daangn.market.domain.TradeStatus;
+import com.daangn.market.domain.TradeState;
+import com.daangn.market.dto.LocationDto;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,13 +18,13 @@ public class PostListDto {
     private int price;
     private int likeCnt;
     private int chatCnt;
-    private TradeStatus status;
+    private TradeState status;
 
     private String dongnm;
     LocationDto preferredLocation;
 
     @QueryProjection
-    public PostListDto(long id, String postImageUrl, String title, LocalDateTime update, int price, int likeCnt, int chatCnt, TradeStatus status, String dongnm, LocationDto preferredLocation) {
+    public PostListDto(long id, String postImageUrl, String title, LocalDateTime update, int price, int likeCnt, int chatCnt, TradeState status, String dongnm, LocationDto preferredLocation) {
         this.id = id;
         this.postImageUrl = postImageUrl;
         this.title = title;

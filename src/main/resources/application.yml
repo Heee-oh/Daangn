@@ -2,12 +2,16 @@ spring:
   application:
     name: market
 
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
   datasource:
     url: jdbc:mysql://localhost:3306/daangn
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+
 
 
 mybatis:

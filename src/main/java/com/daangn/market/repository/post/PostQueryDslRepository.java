@@ -1,7 +1,7 @@
 package com.daangn.market.repository.post;
 
 import com.daangn.market.domain.*;
-import com.daangn.market.dto.PostDetailDto;
+import com.daangn.market.dto.response.PostDetailDto;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -24,12 +24,6 @@ public class PostQueryDslRepository {
 
 
 
-//        queryFactory
-//                .select(new QPostDetailDto(qPost.id,
-//                        qPost.memberId,
-//                        qPostImages.imgSrc,
-//
-//                        ))
 
         return null;
     }

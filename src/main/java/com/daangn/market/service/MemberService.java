@@ -1,7 +1,7 @@
 package com.daangn.market.service;
 
 import com.daangn.market.domain.Member;
-import com.daangn.market.dto.MemberSignDto;
+import com.daangn.market.dto.request.MemberSignDto;
 import com.daangn.market.repository.member.MemberQueryDslRepository;
 import com.daangn.market.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,15 +13,14 @@ import java.util.NoSuchElementException;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
     private final MemberQueryDslRepository memberQueryDslRepository;
 
-
-    public Member savePost(MemberSignDto memberSignDto) {
+    @Transactional
+    public Member saveMember(MemberSignDto memberSignDto) {
         // 멤버 생성
         Member member = Member.builder()
                 .nickname(memberSignDto.nickname())
@@ -32,6 +31,7 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
+    @Transactional(readOnly = true)
     public Member findMember(Long id) {
         if (id == null) throw new IllegalArgumentException("Member id is null");
         return memberRepository
