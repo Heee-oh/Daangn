@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.daangn.market.mapper.PostMapper">
+
+
+    <resultMap id="MapPostDetailDto" type="PostDetailDto">
+        <result property="id" column="id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="profileUrl" column="profile_url"/>
+        <result property="dongnm" column="dongnm"/>
+        <result property="mannerScore" column="manner_score"/>
+        <result property="title" column="title"/>
+        <result property="price" column="price"/>
+        <result property="category" column="category"/>
+        <result property="update" column="last_modified_at"/>
+        <result property="body" column="body"/>
+        <result property="likeCnt" column="like_cnt"/>
+        <result property="viewCnt" column="view"/>
+        <result property="chatCnt" column="chat_cnt"/>
+        <result property="state" column="state"/>
+        <result property="distance" column="distance"/>
+
+        <association property="preferredLocation" resultMap="LocationMap"/>
+    </resultMap>
+
+    <resultMap id="LocationMap" type="com.daangn.market.domain.Location">
+        <result property="latitude" column="lat"/>
+        <result property="longitude" column="lon"/>
+    </resultMap>
+
+    <resultMap id="PostImagesMap" type="com.daangn.market.dto.response.PostImageDto">
+        <result property="id" column="id"/>
+        <result property="imgSrc" column="img_src"/>
+        <result property="sortOrder" column="sort_order"/>
+    </resultMap>
+
+
+    <select id="findPostDetailById"  resultMap="MapPostDetailDto">
+        select p.id,
+               p.member_id,
+               m.profile_url,
+               rd.dongnm,
+               m.manner_score,
+               p.title,
+               p.price,
+               p.category,
+               p.last_modified_at,
+               p.body,
+               p.like_cnt,
+               p.view,
+               p.chat_cnt,
+               p.state,
+               ST_Distance_Sphere(
+                       p.location,
+                       ST_SRID(POINT(#{location.longitude}, #{location.latitude}), 4326)
+               ) as distance,
+               ST_Y(p.location) AS lat,
+               ST_X(p.location) AS lon
+
+        from post p
+            join member m on p.member_id = m.id
+            join region_dong rd on p.region_id = rd.id
+            left join post_images pi on p.id = pi.post_id
+        where p.id = #{postId};
+    </select>
+
+    <select id="findPostImagesByPostId" resultType="PostImageDto">
+        SELECT id, img_src, sort_order
+        FROM post_image
+        WHERE post_id = #{postId}
+    </select>
+</mapper>

@@ -1,0 +1,14 @@
+package com.daangn.market.domain;
+
+import jakarta.persistence.*;
+
+@Entity
+public class MemberSelectRegion {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    private long member_id;
+
+    private int region_dong_id;
+    private int boundary;
+}
