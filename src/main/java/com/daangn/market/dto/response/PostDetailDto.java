@@ -1,9 +1,7 @@
 package com.daangn.market.dto.response;
 
 import com.daangn.market.domain.Location;
-import com.daangn.market.domain.TradeState;
-import com.querydsl.core.annotations.QueryProjection;
-import lombok.Builder;
+import com.daangn.market.domain.TradeStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -28,7 +26,7 @@ public class PostDetailDto {
     private int likeCnt;
     private int viewCnt;
     private int chatCnt;
-    private TradeState state;
+    private TradeStatus state;
     private int distance;
 
     private Location preferredLocation;

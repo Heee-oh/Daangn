@@ -2,7 +2,7 @@ package com.daangn.market.service;
 
 import com.daangn.market.domain.Location;
 import com.daangn.market.domain.Post;
-import com.daangn.market.domain.TradeState;
+import com.daangn.market.domain.TradeStatus;
 import com.daangn.market.dto.request.PostReqDto;
 import com.daangn.market.dto.response.PostDetailDto;
 import com.daangn.market.dto.response.PostImageDto;
@@ -42,7 +42,7 @@ public class PostService {
                 .body(postReqDto.body())
                 .price(postReqDto.price())
                 .location(postReqDto.location())
-                .state(TradeState.ON_SALE)
+                .state(TradeStatus.ON_SALE)
                 .isFree(postReqDto.isFree())
                 .build();
 
