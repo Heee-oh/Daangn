@@ -9,6 +9,7 @@ import com.daangn.market.dto.response.PostImageDto;
 import com.daangn.market.mapper.PostMapper;
 import com.daangn.market.repository.member.MemberRepository;
 import com.daangn.market.repository.post.PostImageRepository;
+import com.daangn.market.repository.post.PostQueryDslRepository;
 import com.daangn.market.repository.post.PostRepository;
 import com.daangn.market.repository.region_dong.RegionDongRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class PostService {
     private final PostMapper postMapper;
 
     private final PostImageRepository postImageRepository;
+    private final PostQueryDslRepository queryDslRepository;
     private final RegionDongRepository regionDongRepository;
     private final MemberRepository memberRepository;
 
@@ -61,9 +63,8 @@ public class PostService {
             throw new NoSuchElementException("동네가 존재하지 않음");
         }
 
-
         // 게시글 디테일 DTO 조회
-        PostDetailDto postDetailDto = postMapper.findPostDetailById(postId, new Location(location.getLongitude(), location.getLatitude()))
+        PostDetailDto postDetailDto = queryDslRepository.findPostDetailById(postId, new Location(location.getLongitude(), location.getLatitude()))
                 .orElseThrow(() -> new NoSuchElementException("판매글이 존재하지 않음 postId : " + postId));
 
         // 이미지들 조회

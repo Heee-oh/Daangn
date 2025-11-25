@@ -26,8 +26,8 @@ public class PostDetailDto {
     private int likeCnt;
     private int viewCnt;
     private int chatCnt;
-    private TradeStatus state;
-    private int distance;
+    private TradeStatus status;
+    private double distance;
 
     private Location preferredLocation;
     private List<PostImageDto> postImages;
@@ -36,5 +36,24 @@ public class PostDetailDto {
 
     public void initPostImages(List<PostImageDto> postImages) {
         this.postImages = postImages;
+    }
+
+    public PostDetailDto(long id, long memberId, String profileUrl, String dongnm, int mannerScore, String title, int price, int category, LocalDateTime update, String body, int likeCnt, int viewCnt, int chatCnt, TradeStatus status, double distance, double longitude, double latitude) {
+        this.id = id;
+        this.memberId = memberId;
+        this.profileUrl = profileUrl;
+        this.dongnm = dongnm;
+        this.mannerScore = mannerScore;
+        this.title = title;
+        this.price = price;
+        this.category = category;
+        this.update = update;
+        this.body = body;
+        this.likeCnt = likeCnt;
+        this.viewCnt = viewCnt;
+        this.chatCnt = chatCnt;
+        this.status = status;
+        this.distance = distance;
+        this.preferredLocation = new Location(longitude, latitude);
     }
 }
