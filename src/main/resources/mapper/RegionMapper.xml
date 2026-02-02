@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.daangn.market.mapper.RegionMapper">
+
+
+    <select id="findRegionDongByCoordinate" resultType="integer">
+        select id
+        from region_dong
+        where ST_Contains(
+            geom,
+              ST_SRID(POINT(
+                      #{location.longitude},
+                          #{location.latitude}), 4326
+                )
+              );
+    </select>
+
+
+
+</mapper>

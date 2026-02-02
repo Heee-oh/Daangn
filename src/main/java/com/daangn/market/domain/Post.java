@@ -31,11 +31,11 @@ public class Post extends BaseTimeEntity {
     private Point location;
 
     @Enumerated(EnumType.STRING)
-    private TradeState state;
+    private TradeStatus state;
     private boolean isFree;
 
     @QueryProjection
-    public Post(long id, int regionId, long memberId, int category, String title, String body, int likeCnt, int chatCnt, int view, int price, Point location, TradeState state, boolean isFree) {
+    public Post(long id, int regionId, long memberId, int category, String title, String body, int likeCnt, int chatCnt, int view, int price, Point location, TradeStatus state, boolean isFree) {
         this.id = id;
         this.regionId = regionId;
         this.memberId = memberId;

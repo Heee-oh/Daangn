@@ -18,4 +18,6 @@ public interface PostMapper {
 
 
     List<PostImageDto> findPostImagesByPostId(@Param("postId") long postId);
+
+
 }
