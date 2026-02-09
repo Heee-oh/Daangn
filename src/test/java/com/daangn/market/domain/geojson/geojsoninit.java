@@ -1,8 +1,8 @@
 package com.daangn.market.domain.geojson;
 
-import com.daangn.market.geojson.Feature;
-import com.daangn.market.geojson.FeatureProperties;
-import com.daangn.market.geojson.Geometry;
+import com.daangn.market.common.geojson.Feature;
+import com.daangn.market.common.geojson.FeatureProperties;
+import com.daangn.market.common.geojson.Geometry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

@@ -1,5 +1,7 @@
 package com.daangn.market.Listing;
 
+import com.daangn.market.Listing.domain.Listing;
+import com.daangn.market.Listing.domain.Status;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
