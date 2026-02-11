@@ -1,5 +1,6 @@
 package com.daangn.market.review.domain;
 
+import com.daangn.market.common.domain.BaseTimeEntity;
 import com.daangn.market.common.domain.id.ListingId;
 import com.daangn.market.common.domain.id.MemberId;
 import com.daangn.market.common.domain.id.ReviewId;
@@ -7,7 +8,7 @@ import com.daangn.market.common.domain.id.TradeId;
 
 import java.time.Instant;
 
-public class Review {
+public class Review extends BaseTimeEntity {
     private ReviewId id;
     private TradeId tradeId;
     private ListingId listingId;
@@ -16,7 +17,6 @@ public class Review {
     private boolean isSeller;
     private int rating; // 1~5
     private String comment;
-    private Instant createdAt;
-    private Instant updatedAt;
+
 
 }

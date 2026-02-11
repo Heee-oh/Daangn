@@ -1,10 +1,19 @@
 package com.daangn.market.Listing.domain;
 
 import com.daangn.market.common.domain.id.RegionId;
+import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-public record HopeLocation(RegionId regionId, double lat, double log) {
+@Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class HopeLocation {
+    private RegionId regionId;
+    private double lat;
+    private double log;
 
-    public HopeLocation {
+
+    public HopeLocation(RegionId regionId, double lat, double log) {
         if (regionId == null) {
             throw new IllegalArgumentException("regionId is required");
         }

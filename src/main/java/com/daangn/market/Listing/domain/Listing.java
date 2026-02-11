@@ -1,149 +1,184 @@
 package com.daangn.market.Listing.domain;
 
+import com.daangn.market.common.domain.BaseTimeEntity;
 import com.daangn.market.common.domain.id.ListingId;
 import com.daangn.market.common.domain.id.MemberId;
-import jakarta.persistence.Embedded;
+import com.github.f4b6a3.tsid.TsidCreator;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
+@Entity
 @Getter
-public class Listing {
-    private ListingId id;
-    private MemberId sellerId;
-    private MemberId buyerId;
-    private MemberId reserverId;
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Listing extends BaseTimeEntity {
 
+    @EmbeddedId
+    private ListingId id;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "seller_id"))
+    private MemberId sellerId;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "buyer_id"))
+    private MemberId buyerId;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "reserver_id"))
+    private MemberId reserverId;
     private String title;
     private String description;
-    private Long categoryId;
+    private Integer categoryId;
+
+    @Embedded
     private HopeLocation hopeLocation; // lat/lng
+
+    @Enumerated(EnumType.STRING)
     private Status status;
     @Embedded
     private Price price;
     private boolean isHidden;
-    private boolean isFree;
 
     private long viewCount;
     private long chatCount;
 
-    private final Set<MemberId> waiters = new HashSet<>();
-    private final List<ListingImage> images = new ArrayList<>();
-
-    private Instant createdAt;
-    private Instant updatedAt;
     private Instant deletedAt;
 
-
-    public Listing(Long price, boolean isFree) {
-        status = Status.DRAFT;
-        isHidden = false;
-        this.price = new Price(price, isFree);
-        this.isFree = isFree;
+    @PrePersist
+    protected void init() {
+        if (id == null) {
+            id = new ListingId(TsidCreator.getTsid().toLong());
+        }
     }
 
+
+    public static Listing draft() {
+        Listing l = new Listing();
+        l.status = Status.DRAFT;
+        l.isHidden = false;
+        return l;
+    }
+
+    public static Listing draftPrice(Long amount, boolean isFree) {
+        Listing l = new Listing();
+        l.status = Status.DRAFT;
+        l.isHidden = false;
+        l.updatePrice(amount, isFree);
+
+        return l;
+    }
+
+
+
+    // 발행
     public void publish() {
-        if (deletedAt == null && status == Status.DRAFT) {
-            if (price == null && !isFree) {
-                throw new IllegalArgumentException("나눔이 아닌데 price가 null"); // 임시
-            }
+        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
+        if (status != Status.DRAFT) throw new IllegalStateException("발행 실패");
 
-            if (isFree) price = new Price(0L, true);
-            else if (price.price() <= 0) {
-                throw new IllegalArgumentException("나눔이 아닌데 가격이 0이하");
-            }
-
-            status = Status.PUBLISHED;
-        } else {
-
-            throw new IllegalStateException("이미 발행된 게시글");
-        }
+        status = Status.PUBLISHED;
     }
 
+    // 숨기기
     public void hide() {
-        if (status != Status.DRAFT
-                && deletedAt == null) {
-            isHidden = true;
-        }
+        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
+        if (status == Status.DRAFT) throw new IllegalStateException("초안은 숨길 수 없음");
+
+        isHidden = true;
     }
 
+    // 숨기기 해제
     public void unHide() {
-        if (isHidden && !isDeleted()
-                && status != Status.DRAFT) {
-            isHidden = false;
-        }
+        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
+        if (!isHidden) throw new IllegalStateException("이미 노출 상태");
+        if (status == Status.DRAFT) throw new IllegalStateException("초안 상태");
+
+        isHidden = false;
     }
 
+    // 예약
     public void reserve(MemberId reservedId) {
-        if (!isDeleted()
-                && !isHidden
-                && status == Status.PUBLISHED) {
+        if (reservedId == null) throw new IllegalArgumentException("잘못된 예약자 id");
+        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
+        if (isHidden) throw new IllegalStateException("숨김 상태");
+        if (status != Status.PUBLISHED) throw new IllegalStateException("예약 불가 상태");
 
-            if (reservedId == null) {
-                throw new IllegalArgumentException("잘못된 예약자 id");
-            }
-
-            if (buyerId != null) {
-                throw new IllegalStateException("기존 예약자 존재");
-            }
-
-            buyerId = reservedId;
-            status = Status.RESERVED;
-        } else {
-            throw new IllegalStateException("예약 실패");
-        }
+        this.reserverId = reservedId;
+        status = Status.RESERVED;
     }
 
+    // 예약 취소
     public void cancelReserve() {
-        if (!isDeleted() && status == Status.RESERVED) {
-            status = Status.PUBLISHED;
-            buyerId = null;
-        } else {
-            throw new IllegalStateException("예약 상태가 아니거나 삭제된 게시물");
-        }
+        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
+        if (status != Status.RESERVED) throw new IllegalStateException("예약 상태 아님");
+
+        status = Status.PUBLISHED;
+        reserverId = null;
     }
 
+    // 판매완료 처리
     public void markSoldOut(MemberId buyerId) {
-        if (!isDeleted()
-                && (status == Status.RESERVED)) {
-            if (buyerId == null || this.buyerId != buyerId) {
-                throw new IllegalArgumentException("잘못된 구매자 id");
-            }
-
-            status = Status.SOLD_OUT;
-            this.buyerId = buyerId;
-
-        } else {
-            throw new IllegalStateException("sold_out 변경 실패");
+        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
+        if (reserverId == null || status != Status.RESERVED) throw new IllegalStateException("예약 상태 아님");
+        if (!reserverId.equals(buyerId)) {
+            throw new IllegalArgumentException("잘못된 구매자 id");
         }
+
+        status = Status.SOLD_OUT;
+        this.buyerId = reserverId;
     }
 
+    // 삭제
     public void remove() {
-        if (!isDeleted()
-                && (status == Status.PUBLISHED || status == Status.DRAFT)) {
-            deletedAt = Instant.now();
-        } else {
+        if (isDeleted()) throw new IllegalStateException("이미 삭제됨");
+        if (status != Status.DRAFT && status != Status.PUBLISHED) {
             throw new IllegalStateException("삭제 조건 실패");
         }
+
+        deletedAt = Instant.now();
     }
 
-    // 임시로 가격 변경만
+    // 가격 업데이트
+    public void updatePrice(Long nPrice, boolean isFree) {
+        ensureEditable();
 
-    public void update(long price) {
-        if (!isDeleted()
-                && (status == Status.PUBLISHED || status == Status.DRAFT)) {
+        if (!isFree
+                && ((nPrice == null) || nPrice <= 0))
+            throw new IllegalArgumentException("잘못된 가격 설정");
+        this.price = new Price(nPrice, isFree); // 무료면 자동으로 0원 세팅됨
+    }
 
-            if (isFree) throw new IllegalStateException("무료인데 가격 변경 시도");
-            else if (price <= 0) throw new IllegalArgumentException("무료가 아닌데 0 이하 가격 수정시도");
+    // 타이틀과 설명 업데이트
+    public void updateTitleAndDescription(String title, String description) {
+        ensureEditable();
 
-            this.price = new Price(price, this.price.isFree());
-        } else {
-            throw new IllegalStateException("변경 실패");
+        if (title != null) {
+            this.title = title;
         }
+
+        if (description != null) {
+            this.description = description;
+        }
+    }
+
+    public void updateHopeLocation(HopeLocation newHopeLocation) {
+        ensureEditable();
+        hopeLocation = newHopeLocation;
+    }
+
+    public void updateCategory(Integer categoryId) {
+        ensureEditable();
+        this.categoryId = categoryId;
+    }
+
+
+    private void ensureEditable() {
+        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
+        if (status != Status.DRAFT && status != Status.PUBLISHED)
+            throw new IllegalStateException("수정 불가 상태");
     }
 
     private boolean isDeleted() {

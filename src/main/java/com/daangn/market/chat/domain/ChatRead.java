@@ -5,4 +5,4 @@ import com.daangn.market.common.domain.id.MemberId;
 
 import java.time.Instant;
 
-public record ChatRead(ChatRoomId roomId, MemberId memberId, long lastReadSeq, Instant updatedAt) {}
+public record ChatRead(Long roomId, Long memberId, long lastReadSeq, Instant updatedAt) {}
