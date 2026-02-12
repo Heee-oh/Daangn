@@ -15,6 +15,7 @@ import java.io.Serializable;
 public class RegionId implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+
     @Column(name = "region_id")
     private Integer value;
 }

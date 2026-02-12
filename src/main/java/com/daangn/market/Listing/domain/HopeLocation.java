@@ -2,13 +2,19 @@ package com.daangn.market.Listing.domain;
 
 import com.daangn.market.common.domain.id.RegionId;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class HopeLocation {
+
+    @Embedded
     private RegionId regionId;
+
     private double lat;
     private double log;
 
@@ -23,6 +29,10 @@ public class HopeLocation {
         if (log < -180.0 || log > 180.0) {
             throw new IllegalArgumentException("longitude out of range");
         }
+
+        this.regionId = regionId;
+        this.lat = lat;
+        this.log = log;
     }
 
 }

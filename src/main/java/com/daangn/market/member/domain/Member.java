@@ -3,10 +3,19 @@ package com.daangn.market.member.domain;
 import com.daangn.market.common.domain.BaseTimeEntity;
 import com.daangn.market.common.domain.id.MemberId;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
+@Getter
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Member extends BaseTimeEntity {
     @EmbeddedId
     @AttributeOverride(name = "value", column = @Column(name = "member_id"))
@@ -15,31 +24,32 @@ public class Member extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private MemberStatus status; // ACTIVE/SUSPENDED/WITHDRAWN
-    private double mannerTemp;
+    private int mannerTemp;
 
     @Embedded
     private PhoneNumber phoneNumber;
-
     private String profileImageUrl;
+
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<MemberRegion> regions = new ArrayList<>();
 
     private Instant withdrawnAt;
 
-    public Member() {
-    }
 
     public Member(String nickname, PhoneNumber phoneNumber) {
         this.memberId = MemberId.generate();
         this.nickname = nickname;
         this.phoneNumber = phoneNumber;
         this.status = MemberStatus.ACTIVE;
-        this.mannerTemp = 36.5;
+        this.mannerTemp = 365;
     }
 
 
-    public void withdraw(Instant at) {
+    public void withdraw() {
         if (status != MemberStatus.WITHDRAWN) {
             status = MemberStatus.WITHDRAWN;
-            withdrawnAt = at;
+            withdrawnAt = Instant.now();
         }
     }
 
@@ -47,15 +57,15 @@ public class Member extends BaseTimeEntity {
     public void updateMannerTemp(int select) {
         ensureActive();
 
-        double nMannerTemp = getMannerTemp(select);
-        if (nMannerTemp < 0 || nMannerTemp > 99.9) {
-            nMannerTemp = Math.max(0, Math.min(nMannerTemp, 99.9));
+        int nMannerTemp = getMannerTemp(select);
+        if (nMannerTemp < 0 || nMannerTemp > 999) {
+            nMannerTemp = Math.max(0, Math.min(nMannerTemp, 999));
         }
 
         mannerTemp = nMannerTemp;
     }
 
-    public void changeProfileImage(String fileName) {
+    public void updateProfileImage(String fileName) {
         ensureActive();
 
         if (fileName == null) {
@@ -64,7 +74,7 @@ public class Member extends BaseTimeEntity {
         profileImageUrl = fileName;
     }
 
-    public void changeNickname(String nickname) {
+    public void updateNickname(String nickname) {
         ensureActive();
 
         if (nickname == null || nickname.isBlank() || nickname.length() > 50) {
@@ -87,6 +97,34 @@ public class Member extends BaseTimeEntity {
         status = MemberStatus.ACTIVE;
     }
 
+    public void addRegion(MemberRegion region) {
+        ensureActive();
+
+        long activeCount = regions.stream()
+                .filter(MemberRegion::isPrimary)
+                .count();
+
+        if (activeCount >= 2) {
+            throw new IllegalStateException("동네는 최대 2개 설정 가능");
+        }
+
+        regions.add(region);
+        region.updateMember(this);
+    }
+
+    // 메인인 2개 지역에서 제외
+    public void removeRegionFromPrimary(Long memberRegionId) {
+        ensureActive();
+
+        MemberRegion region = regions.stream()
+                .filter(r -> r.getMemberRegionId().equals(memberRegionId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("지역 없음"));
+
+        region.unsetPrimary();
+    }
+
+
 
     private void ensureActive() {
         if (status != MemberStatus.ACTIVE) {
@@ -94,12 +132,12 @@ public class Member extends BaseTimeEntity {
         }
     }
 
-    private double getMannerTemp(int select) {
+    private int getMannerTemp(int select) {
         return switch (select) {
-            case 1 -> mannerTemp - 0.2;
-            case 2 -> mannerTemp - 0.1;
-            case 4 -> mannerTemp + 0.1;
-            case 5 -> mannerTemp + 0.2;
+            case 1 -> mannerTemp - 2;
+            case 2 -> mannerTemp - 1;
+            case 4 -> mannerTemp + 1;
+            case 5 -> mannerTemp + 2;
             default -> mannerTemp;
         };
     }

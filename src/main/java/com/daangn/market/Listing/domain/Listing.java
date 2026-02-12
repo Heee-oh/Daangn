@@ -10,6 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -43,9 +46,11 @@ public class Listing extends BaseTimeEntity {
     private Price price;
     private boolean isHidden;
 
+    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<ListingImage> images = new ArrayList<>();
+
     private long viewCount;
     private long chatCount;
-
     private Instant deletedAt;
 
     @PrePersist
@@ -164,14 +169,95 @@ public class Listing extends BaseTimeEntity {
         }
     }
 
+    // 선호 지역
     public void updateHopeLocation(HopeLocation newHopeLocation) {
         ensureEditable();
         hopeLocation = newHopeLocation;
     }
 
+    // 카테고리 넘버
     public void updateCategory(Integer categoryId) {
         ensureEditable();
         this.categoryId = categoryId;
+    }
+
+    // 이미지 추가
+    public void addImages(List<ListingImage> listingImages) {
+        ensureEditable();
+        listingImages.forEach(this::addImage);
+    }
+
+    // 이미지들 삭제
+    public void deleteImages(List<Long> imageIds) {
+        ensureEditable();
+
+        HashSet<Long> idSet = new HashSet<>(imageIds);
+
+        boolean removed = images.removeIf(image -> {
+            if (idSet.contains(image.getImageId())) {
+                image.updateListing(null);
+                return true;
+            }
+            return false;
+        });
+
+        if (!removed) {
+            throw new EntityNotFoundException("이미지 없음");
+        }
+
+        // 재정렬
+        reorderImages();
+    }
+
+    // 이미지들 대체
+    public void replaceImages(List<ListingImage> listingImages) {
+        ensureEditable();
+
+        // 기존 관계 끊기
+        for (ListingImage img : images) {
+            img.updateListing(null);
+        }
+        images.clear();
+
+        // 새롭게 추가
+        for (ListingImage image : listingImages) {
+            addImage(image);
+        }
+    }
+
+
+    public void updateImageOrder(List<Long> orderedImageIds) {
+        ensureEditable();
+
+        if (orderedImageIds.size() != images.size()) {
+            throw new IllegalArgumentException("이미지 개수가 일치하지 않음");
+        }
+
+        Map<Long, ListingImage> map = images.stream()
+                .collect(Collectors.toMap(
+                        ListingImage::getImageId, // key mapper
+                        Function.identity()) // value mapper (객체 그대로) (x -> x)와 동일
+                );
+
+        for (int i = 0; i < orderedImageIds.size(); i++) {
+            ListingImage img = map.get(orderedImageIds.get(i));
+            if (img == null) throw new EntityNotFoundException("이미지 존재하지 않음");
+            img.updateSortOrder(i);
+        }
+    }
+
+    // 편의 메서드
+    private void addImage(ListingImage image) {
+        images.add(image);
+        image.updateListing(this);
+        image.updateSortOrder(images.size() - 1);
+    }
+
+
+    private void reorderImages() {
+        for (int i = 0; i < images.size(); i++) {
+            images.get(i).updateSortOrder(i);
+        }
     }
 
 

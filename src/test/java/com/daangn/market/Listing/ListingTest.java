@@ -1,24 +1,20 @@
 package com.daangn.market.Listing;
 
+import com.daangn.market.Listing.domain.HopeLocation;
 import com.daangn.market.Listing.domain.Listing;
 import com.daangn.market.Listing.domain.Status;
 import com.daangn.market.common.domain.id.MemberId;
+import com.daangn.market.common.domain.id.RegionId;
 import org.assertj.core.api.Assertions;
-import org.geolatte.geom.M;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
 
 
 class ListingTest {
 
-
-
     @Test
     @DisplayName("초기 작성 Draft 체크 (정상 판매글)")
     void beforePublish1() {
-
         Listing listing = Listing.draftPrice(10L, false);
         Assertions.assertThat(listing.getStatus()).isSameAs(Status.DRAFT);
         Assertions.assertThat(listing.getPrice().isFree()).isFalse();
@@ -39,7 +35,8 @@ class ListingTest {
     @DisplayName("판매글 정상 가격 publish 성공")
     void publishSuccess1() {
         // 무료가 아닌 1이상의 정상 가격
-        Listing listing = Listing.draftPrice(10L, false);;
+        Listing listing = Listing.draftPrice(10L, false);
+        ;
         listing.publish();
 
         Assertions.assertThat(listing.getStatus())
@@ -47,8 +44,9 @@ class ListingTest {
                 .isSameAs(Status.PUBLISHED);
 
     }
+
     @Test
-    @DisplayName( "무료이며 가격이 null 일 경우")
+    @DisplayName("무료이며 가격이 null 일 경우")
     void publishSuccess2() {
         Listing listing2 = Listing.draftPrice(null, true);
         listing2.publish();
@@ -64,21 +62,20 @@ class ListingTest {
     @Test
     @DisplayName("무료이면서 0원일 경우")
     void publishSuccess3() {
-        Listing listing3 = Listing.draftPrice(0L, true);;
+        Listing listing3 = Listing.draftPrice(0L, true);
+        ;
         listing3.publish();
 
         Assertions.assertThat(listing3.getStatus())
                 .as("리스팅 발행 후 상태 검증")
                 .isSameAs(Status.PUBLISHED);
-
-
-
     }
 
     @Test
     @DisplayName("무료인데 가격이 1이상 존재")
     void publishSuccess4() {
-        Listing listing4 = Listing.draftPrice(40L, true);;
+        Listing listing4 = Listing.draftPrice(40L, true);
+        ;
         listing4.publish();
 
         Assertions.assertThat(listing4.getStatus())
@@ -234,6 +231,7 @@ class ListingTest {
                 .isInstanceOf(IllegalStateException.class);
 
     }
+
     @Test
     @DisplayName("soldOut 성공 테스트")
     void soldOutSuccess() {
@@ -246,6 +244,7 @@ class ListingTest {
         Assertions.assertThat(listing.getBuyerId().getValue()).isEqualTo(123L);
 
     }
+
     @Test
     @DisplayName("remove 실패 테스트")
     void removeFailTest() {
@@ -264,6 +263,7 @@ class ListingTest {
                 .isInstanceOf(IllegalStateException.class);
 
     }
+
     @Test
     @DisplayName("update 실패 테스트")
     void updateFailTest() {
@@ -322,6 +322,5 @@ class ListingTest {
         Assertions.assertThat(listing.getDescription()).isEqualTo("abc");
 
     }
-
 
 }
