@@ -36,7 +36,11 @@ class geojsoninit {
         JsonNode fe = node.get("features");
 
         Feature[] features = mapper.readValue(fe.toString(), Feature[].class);
-        String sql = "insert into region_dong values(null, :adm_nm, :adm_cd, :adm_cd2, :sgg, :sido, :sidonm, :sggnm, :dongnm, ST_GeomFromText(:geom, 4326))";
+        String sql =
+        """
+            insert into region 
+            values(null, :adm_nm, :adm_cd, :adm_cd2, :sgg, :sido, :sidonm, :sggnm, :dongnm, ST_GeomFromText(:geom, 4326))
+        """;
 
         List<SqlParameterSource> batchParams = new ArrayList<>();
 

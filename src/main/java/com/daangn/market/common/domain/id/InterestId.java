@@ -16,4 +16,5 @@ public class InterestId implements Serializable {
     private static final long serialVersionUID = 1L;
     @Column(name = "interest_id")
     private Long value;
+
 }

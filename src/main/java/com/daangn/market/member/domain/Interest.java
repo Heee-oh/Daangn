@@ -2,7 +2,6 @@ package com.daangn.market.member.domain;
 
 import com.daangn.market.common.domain.id.InterestId;
 import com.daangn.market.common.domain.id.ListingId;
-import com.daangn.market.common.domain.id.MemberId;
 import com.github.f4b6a3.tsid.TsidCreator;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -15,10 +14,14 @@ import java.time.Instant;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Interest {
+
     @EmbeddedId
     private InterestId id;
-    @Embedded
-    private MemberId memberId;
+
+    @ManyToOne
+    @JoinColumn(name = "member_id", nullable = false, updatable = false)
+    private Member member;
+
     @Embedded
     private ListingId listingId;
 
@@ -31,9 +34,12 @@ public class Interest {
         }
     }
 
-    public Interest(ListingId listingId, MemberId memberId) {
+    public Interest(ListingId listingId) {
         this.listingId = listingId;
-        this.memberId = memberId;
         createdAt = Instant.now();
+    }
+
+    public void updateMember(Member member) {
+        this.member = member;
     }
 }

@@ -1,6 +1,7 @@
 package com.daangn.market.member.domain;
 
 import com.daangn.market.common.domain.BaseTimeEntity;
+import com.daangn.market.common.domain.id.InterestId;
 import com.daangn.market.common.domain.id.MemberId;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -17,9 +18,11 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Member extends BaseTimeEntity {
+
     @EmbeddedId
     @AttributeOverride(name = "value", column = @Column(name = "member_id"))
     private MemberId memberId;
+
     private String nickname;
 
     @Enumerated(EnumType.STRING)
@@ -33,6 +36,9 @@ public class Member extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     List<MemberRegion> regions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Interest> interests = new ArrayList<>();
 
     private Instant withdrawnAt;
 
@@ -50,6 +56,8 @@ public class Member extends BaseTimeEntity {
         if (status != MemberStatus.WITHDRAWN) {
             status = MemberStatus.WITHDRAWN;
             withdrawnAt = Instant.now();
+        } else {
+            throw new IllegalStateException("이미 탈퇴된 회원");
         }
     }
 
@@ -122,6 +130,12 @@ public class Member extends BaseTimeEntity {
                 .orElseThrow(() -> new EntityNotFoundException("지역 없음"));
 
         region.unsetPrimary();
+    }
+
+    // 관심 목록 추가
+    public void addInterest(Interest interest) {
+        this.interests.add(interest);
+        interest.updateMember(this);
     }
 
 
