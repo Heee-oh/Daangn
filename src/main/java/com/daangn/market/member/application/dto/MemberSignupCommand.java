@@ -4,6 +4,6 @@ import com.daangn.market.member.domain.PhoneNumber;
 
 public record MemberSignupCommand(
         String nickname,
-        PhoneNumber phoneNumber
+        String phoneNumber
 ) {
 }

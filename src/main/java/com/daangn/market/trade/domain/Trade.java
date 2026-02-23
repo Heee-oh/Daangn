@@ -1,20 +1,45 @@
 package com.daangn.market.trade.domain;
 
-import com.daangn.market.common.domain.id.ListingId;
-import com.daangn.market.common.domain.id.MemberId;
-import com.daangn.market.common.domain.id.TradeId;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+@Entity
+@Getter
+@Table(name = "trade")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Trade {
-    private TradeId id;
-    private ListingId listingId;
-    private MemberId sellerId;
-    private MemberId buyerId;
-    private Price price;
-    private TradeStatus status; // CREATED/COMPLETED/CANCELED
-    private Instant completedAt;
-    private Instant createdAt;
-    private Instant updatedAt;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "trade_id")
+    private Long id;
+
+    @Column(name = "listing_id", nullable = false)
+    private Long listingId;
+
+    @Column(name = "seller_id", nullable = false)
+    private Long sellerId;
+
+    @Column(name = "buyer_id", nullable = false)
+    private Long buyerId;
+
+    @Column(name = "price", nullable = false)
+    private Long price;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private TradeStatus status;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 }

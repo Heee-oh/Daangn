@@ -1,8 +1,7 @@
 package com.daangn.market.member.domain;
 
 import com.daangn.market.common.domain.BaseTimeEntity;
-import com.daangn.market.common.domain.id.InterestId;
-import com.daangn.market.common.domain.id.MemberId;
+import com.github.f4b6a3.tsid.TsidCreator;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,24 +14,30 @@ import java.util.List;
 
 @Getter
 @Entity
+@Table(name = "member")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Member extends BaseTimeEntity {
 
-    @EmbeddedId
-    @AttributeOverride(name = "value", column = @Column(name = "member_id"))
-    private MemberId memberId;
+    @Id
+    @Column(name = "member_id")
+    private Long id;
 
+    @Column(length = 50, nullable = false)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
-    private MemberStatus status; // ACTIVE/SUSPENDED/WITHDRAWN
+    @Column(length = 20, nullable = false)
+    private MemberStatus status;
+
+    @Column(name = "manner_temp", nullable = false)
     private int mannerTemp;
 
     @Embedded
     private PhoneNumber phoneNumber;
-    private String profileImageUrl;
 
+    @Column(name = "profile_image", length = 500)
+    private String profileImageUrl;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     List<MemberRegion> regions = new ArrayList<>();
@@ -40,28 +45,32 @@ public class Member extends BaseTimeEntity {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Interest> interests = new ArrayList<>();
 
+    @Column(name = "withdrawn_at")
     private Instant withdrawnAt;
 
+    @PrePersist
+    void init() {
+        if (id == null) {
+            id = TsidCreator.getTsid().toLong();
+        }
+    }
 
     public Member(String nickname, PhoneNumber phoneNumber) {
-        this.memberId = MemberId.generate();
         this.nickname = nickname;
         this.phoneNumber = phoneNumber;
         this.status = MemberStatus.ACTIVE;
         this.mannerTemp = 365;
     }
 
-
     public void withdraw() {
         if (status != MemberStatus.WITHDRAWN) {
             status = MemberStatus.WITHDRAWN;
             withdrawnAt = Instant.now();
-        } else {
-            throw new IllegalStateException("이미 탈퇴된 회원");
+            return;
         }
+        throw new IllegalStateException("Already withdrawn member");
     }
 
-    // -0.2 -0.1 0 0.1 0.2
     public void updateMannerTemp(int select) {
         ensureActive();
 
@@ -77,7 +86,7 @@ public class Member extends BaseTimeEntity {
         ensureActive();
 
         if (fileName == null) {
-            throw new IllegalArgumentException("이미지가 없습니다.");
+            throw new IllegalArgumentException("Image is required");
         }
         profileImageUrl = fileName;
     }
@@ -86,7 +95,7 @@ public class Member extends BaseTimeEntity {
         ensureActive();
 
         if (nickname == null || nickname.isBlank() || nickname.length() > 50) {
-            throw new IllegalArgumentException("닉네임이 없거나 50자를 넘었습니다.");
+            throw new IllegalArgumentException("Nickname must be 1 to 50 characters");
         }
 
         this.nickname = nickname;
@@ -98,8 +107,8 @@ public class Member extends BaseTimeEntity {
     }
 
     public void active() {
-        if (status != MemberStatus.SUSPENDED){
-            throw new IllegalStateException("정지 상태가 아님");
+        if (status != MemberStatus.SUSPENDED) {
+            throw new IllegalStateException("Status is not SUSPENDED");
         }
 
         status = MemberStatus.ACTIVE;
@@ -113,36 +122,32 @@ public class Member extends BaseTimeEntity {
                 .count();
 
         if (activeCount >= 2) {
-            throw new IllegalStateException("동네는 최대 2개 설정 가능");
+            throw new IllegalStateException("At most two primary regions are allowed");
         }
 
         regions.add(region);
         region.updateMember(this);
     }
 
-    // 메인인 2개 지역에서 제외
-    public void removeRegionFromPrimary(Long memberRegionId) {
+    public void removeRegionFromPrimary(Integer regionId) {
         ensureActive();
 
         MemberRegion region = regions.stream()
-                .filter(r -> r.getMemberRegionId().equals(memberRegionId))
+                .filter(r -> r.getRegionId().equals(regionId))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("지역 없음"));
+                .orElseThrow(() -> new EntityNotFoundException("Region not found"));
 
         region.unsetPrimary();
     }
 
-    // 관심 목록 추가
     public void addInterest(Interest interest) {
         this.interests.add(interest);
         interest.updateMember(this);
     }
 
-
-
     private void ensureActive() {
         if (status != MemberStatus.ACTIVE) {
-            throw new IllegalStateException("ACTIVE 상태가 아님");
+            throw new IllegalStateException("Status is not ACTIVE");
         }
     }
 
@@ -155,9 +160,4 @@ public class Member extends BaseTimeEntity {
             default -> mannerTemp;
         };
     }
-
-
-
-
-
 }

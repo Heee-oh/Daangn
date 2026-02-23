@@ -1,22 +1,40 @@
 package com.daangn.market.review.domain;
 
 import com.daangn.market.common.domain.BaseTimeEntity;
-import com.daangn.market.common.domain.id.ListingId;
-import com.daangn.market.common.domain.id.MemberId;
-import com.daangn.market.common.domain.id.ReviewId;
-import com.daangn.market.common.domain.id.TradeId;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
+@Entity
+@Getter
+@Table(name = "review")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Review extends BaseTimeEntity {
-    private ReviewId id;
-    private TradeId tradeId;
-    private ListingId listingId;
-    private MemberId writerId;
-    private MemberId targetId;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "review_id")
+    private Long id;
+
+    @Column(name = "trade_id", nullable = false)
+    private Long tradeId;
+
+    @Column(name = "listing_id", nullable = false)
+    private Long listingId;
+
+    @Column(name = "writer_id", nullable = false)
+    private Long writerId;
+
+    @Column(name = "target_id", nullable = false)
+    private Long targetId;
+
+    @Column(name = "is_seller", nullable = false)
     private boolean isSeller;
-    private int rating; // 1~5
+
+    @Column(nullable = false)
+    private int rating;
+
+    @Column(columnDefinition = "TEXT")
     private String comment;
-
-
 }

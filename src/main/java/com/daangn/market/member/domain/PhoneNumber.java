@@ -1,6 +1,7 @@
 package com.daangn.market.member.domain;
 
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Column;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,8 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PhoneNumber {
     private static final Pattern PATTERN = Pattern.compile("^\\d{10,11}$");
+
+    @Column(name = "phone_number", length = 20, nullable = false, unique = true)
     private String value;
 
 

@@ -1,8 +1,5 @@
 package com.daangn.market.member.infrastructure.Interest;
 
-import com.daangn.market.common.domain.id.InterestId;
-import com.daangn.market.common.domain.id.ListingId;
-import com.daangn.market.common.domain.id.MemberId;
 import com.daangn.market.member.domain.Interest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,21 +10,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional
-public interface InterestJpaRepository extends JpaRepository<Interest, InterestId>, InterestRepositoryCustom {
+public interface InterestJpaRepository extends JpaRepository<Interest, Long>, InterestRepositoryCustom {
 
     @Modifying
-    @Query("DELETE FROM Interest i WHERE i.listingId = :listingId AND i.member = :memberId")
+    @Query("DELETE FROM Interest i WHERE i.listingId = :listingId AND i.member.id = :memberId")
     int deleteByListingIdAndMemberId(
-            @Param("listingId") ListingId listingId,
-            @Param("memberId") MemberId memberId
+            @Param("listingId") Long listingId,
+            @Param("memberId") Long memberId
     );
 
     @Transactional(readOnly = true)
-    @Query("SELECT COUNT(i) > 0 FROM Interest i WHERE i.listingId = :listingId AND i.member.memberId = :memberId")
+    @Query("SELECT COUNT(i) > 0 FROM Interest i WHERE i.listingId = :listingId AND i.member.id = :memberId")
     boolean existsByListingIdAndMemberId(
-            @Param("listingId") ListingId listingId,
-            @Param("memberId") MemberId memberId
+            @Param("listingId") Long listingId,
+            @Param("memberId") Long memberId
     );
-
-
 }

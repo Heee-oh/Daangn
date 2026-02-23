@@ -1,21 +1,22 @@
 package com.daangn.market.region.domain;
 
-import com.daangn.market.common.domain.id.RegionId;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AccessLevel;
 import org.locationtech.jts.geom.MultiPolygon;
 
 @Entity
 @Getter
+@Table(name = "region")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Region {
 
-    @EmbeddedId
-    private RegionId id;
+    @Id
+    @Column(name = "id")
+    private Integer id;
 
     @Column(name = "adm_nm", length = 50, nullable = false)
     private String admNm;
@@ -41,11 +42,6 @@ public class Region {
     @Column(length = 20, nullable = false)
     private String dongnm;
 
-    /**
-     * SRID 4326 (WGS84) MultiPolygon 데이터
-     * hibernate-spatial 의존성이 필요합니다.
-     */
     @Column(columnDefinition = "geometry(MultiPolygon, 4326)", nullable = false)
     private MultiPolygon geom;
-
 }

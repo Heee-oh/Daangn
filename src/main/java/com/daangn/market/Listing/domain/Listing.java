@@ -1,8 +1,6 @@
 package com.daangn.market.Listing.domain;
 
 import com.daangn.market.common.domain.BaseTimeEntity;
-import com.daangn.market.common.domain.id.ListingId;
-import com.daangn.market.common.domain.id.MemberId;
 import com.github.f4b6a3.tsid.TsidCreator;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -10,56 +8,69 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Entity
 @Getter
+@Table(name = "listing")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Listing extends BaseTimeEntity {
 
-    @EmbeddedId
-    private ListingId id;
+    @Id
+    @Column(name = "listing_id")
+    private Long id;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "seller_id"))
-    private MemberId sellerId;
+    @Column(name = "seller_id", nullable = false)
+    private Long sellerId;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "buyer_id"))
-    private MemberId buyerId;
+    @Column(name = "buyer_id")
+    private Long buyerId;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "reserver_id"))
-    private MemberId reserverId;
+    @Column(name = "reserver_id")
+    private Long reserverId;
+
+    @Column(length = 200, nullable = false)
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
-    private Integer categoryId;
+
+    @Column(name = "category_id")
+    private Long categoryId;
 
     @Embedded
-    private HopeLocation hopeLocation; // lat/lng
+    private HopeLocation hopeLocation;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
     private Status status;
+
     @Embedded
     private Price price;
+
+    @Column(name = "is_hidden")
     private boolean isHidden;
 
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ListingImage> images = new ArrayList<>();
 
+    @Column(name = "view_count", nullable = false)
     private long viewCount;
-    private long chatCount;
+
+    @Column(name = "deleted_at")
     private Instant deletedAt;
 
     @PrePersist
     protected void init() {
         if (id == null) {
-            id = new ListingId(TsidCreator.getTsid().toLong());
+            id = TsidCreator.getTsid().toLong();
         }
     }
-
 
     public static Listing draft() {
         Listing l = new Listing();
@@ -77,86 +88,107 @@ public class Listing extends BaseTimeEntity {
         return l;
     }
 
-
-
-    // 발행
     public void publish() {
-        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
-        if (status != Status.DRAFT) throw new IllegalStateException("발행 실패");
+        if (isDeleted()) {
+            throw new IllegalStateException("Deleted listing");
+        }
+        if (status != Status.DRAFT) {
+            throw new IllegalStateException("Publish failed");
+        }
 
         status = Status.PUBLISHED;
     }
 
-    // 숨기기
     public void hide() {
-        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
-        if (status == Status.DRAFT) throw new IllegalStateException("초안은 숨길 수 없음");
+        if (isDeleted()) {
+            throw new IllegalStateException("Deleted listing");
+        }
+        if (status == Status.DRAFT) {
+            throw new IllegalStateException("Draft cannot be hidden");
+        }
 
         isHidden = true;
     }
 
-    // 숨기기 해제
     public void unHide() {
-        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
-        if (!isHidden) throw new IllegalStateException("이미 노출 상태");
-        if (status == Status.DRAFT) throw new IllegalStateException("초안 상태");
+        if (isDeleted()) {
+            throw new IllegalStateException("Deleted listing");
+        }
+        if (!isHidden) {
+            throw new IllegalStateException("Already visible");
+        }
+        if (status == Status.DRAFT) {
+            throw new IllegalStateException("Draft state");
+        }
 
         isHidden = false;
     }
 
-    // 예약
-    public void reserve(MemberId reservedId) {
-        if (reservedId == null) throw new IllegalArgumentException("잘못된 예약자 id");
-        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
-        if (isHidden) throw new IllegalStateException("숨김 상태");
-        if (status != Status.PUBLISHED) throw new IllegalStateException("예약 불가 상태");
+    public void reserve(Long reservedId) {
+        if (reservedId == null) {
+            throw new IllegalArgumentException("Invalid buyer id");
+        }
+        if (isDeleted()) {
+            throw new IllegalStateException("Deleted listing");
+        }
+        if (isHidden) {
+            throw new IllegalStateException("Hidden state");
+        }
+        if (status != Status.PUBLISHED) {
+            throw new IllegalStateException("Cannot reserve in current status");
+        }
 
         this.reserverId = reservedId;
         status = Status.RESERVED;
     }
 
-    // 예약 취소
     public void cancelReserve() {
-        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
-        if (status != Status.RESERVED) throw new IllegalStateException("예약 상태 아님");
+        if (isDeleted()) {
+            throw new IllegalStateException("Deleted listing");
+        }
+        if (status != Status.RESERVED) {
+            throw new IllegalStateException("Not reserved state");
+        }
 
         status = Status.PUBLISHED;
-        reserverId = null;
+        this.reserverId = null;
     }
 
-    // 판매완료 처리
-    public void markSoldOut(MemberId buyerId) {
-        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
-        if (reserverId == null || status != Status.RESERVED) throw new IllegalStateException("예약 상태 아님");
-        if (!reserverId.equals(buyerId)) {
-            throw new IllegalArgumentException("잘못된 구매자 id");
+    public void markSoldOut(Long buyerId) {
+        if (isDeleted()) {
+            throw new IllegalStateException("Deleted listing");
+        }
+        if (status != Status.RESERVED) {
+            throw new IllegalStateException("Not reserved state");
+        }
+        if (!this.reserverId.equals(buyerId)) {
+            throw new IllegalArgumentException("Invalid buyer id");
         }
 
         status = Status.SOLD_OUT;
-        this.buyerId = reserverId;
+        this.buyerId = buyerId;
     }
 
-    // 삭제
     public void remove() {
-        if (isDeleted()) throw new IllegalStateException("이미 삭제됨");
+        if (isDeleted()) {
+            throw new IllegalStateException("Already deleted");
+        }
         if (status != Status.DRAFT && status != Status.PUBLISHED) {
-            throw new IllegalStateException("삭제 조건 실패");
+            throw new IllegalStateException("Delete precondition failed");
         }
 
         deletedAt = Instant.now();
     }
 
-    // 가격 업데이트
     public void updatePrice(Long nPrice, boolean isFree) {
         ensureEditable();
 
-        if (!isFree
-                && ((nPrice == null) || nPrice <= 0))
-            throw new IllegalArgumentException("잘못된 가격 설정");
-        this.price = new Price(nPrice, isFree); // 무료면 자동으로 0원 세팅됨
+        if (!isFree && (nPrice == null || nPrice <= 0)) {
+            throw new IllegalArgumentException("Invalid price");
+        }
+        this.price = new Price(nPrice, isFree);
     }
 
-    // 타이틀과 설명 업데이트
     public void updateTitleAndDescription(String title, String description) {
         ensureEditable();
 
@@ -169,25 +201,21 @@ public class Listing extends BaseTimeEntity {
         }
     }
 
-    // 선호 지역
     public void updateHopeLocation(HopeLocation newHopeLocation) {
         ensureEditable();
         hopeLocation = newHopeLocation;
     }
 
-    // 카테고리 넘버
-    public void updateCategory(Integer categoryId) {
+    public void updateCategory(Long categoryId) {
         ensureEditable();
         this.categoryId = categoryId;
     }
 
-    // 이미지 추가
     public void addImages(List<ListingImage> listingImages) {
         ensureEditable();
         listingImages.forEach(this::addImage);
     }
 
-    // 이미지들 삭제
     public void deleteImages(List<Long> imageIds) {
         ensureEditable();
 
@@ -202,57 +230,49 @@ public class Listing extends BaseTimeEntity {
         });
 
         if (!removed) {
-            throw new EntityNotFoundException("이미지 없음");
+            throw new EntityNotFoundException("Image not found");
         }
 
-        // 재정렬
         reorderImages();
     }
 
-    // 이미지들 대체
     public void replaceImages(List<ListingImage> listingImages) {
         ensureEditable();
 
-        // 기존 관계 끊기
         for (ListingImage img : images) {
             img.updateListing(null);
         }
         images.clear();
 
-        // 새롭게 추가
         for (ListingImage image : listingImages) {
             addImage(image);
         }
     }
 
-
     public void updateImageOrder(List<Long> orderedImageIds) {
         ensureEditable();
 
         if (orderedImageIds.size() != images.size()) {
-            throw new IllegalArgumentException("이미지 개수가 일치하지 않음");
+            throw new IllegalArgumentException("Image count mismatch");
         }
 
         Map<Long, ListingImage> map = images.stream()
-                .collect(Collectors.toMap(
-                        ListingImage::getImageId, // key mapper
-                        Function.identity()) // value mapper (객체 그대로) (x -> x)와 동일
-                );
+                .collect(Collectors.toMap(ListingImage::getImageId, Function.identity()));
 
         for (int i = 0; i < orderedImageIds.size(); i++) {
             ListingImage img = map.get(orderedImageIds.get(i));
-            if (img == null) throw new EntityNotFoundException("이미지 존재하지 않음");
+            if (img == null) {
+                throw new EntityNotFoundException("Image not found");
+            }
             img.updateSortOrder(i);
         }
     }
 
-    // 편의 메서드
     private void addImage(ListingImage image) {
         images.add(image);
         image.updateListing(this);
         image.updateSortOrder(images.size() - 1);
     }
-
 
     private void reorderImages() {
         for (int i = 0; i < images.size(); i++) {
@@ -260,15 +280,16 @@ public class Listing extends BaseTimeEntity {
         }
     }
 
-
     private void ensureEditable() {
-        if (isDeleted()) throw new IllegalStateException("삭제된 게시글");
-        if (status != Status.DRAFT && status != Status.PUBLISHED)
-            throw new IllegalStateException("수정 불가 상태");
+        if (isDeleted()) {
+            throw new IllegalStateException("Deleted listing");
+        }
+        if (status != Status.DRAFT && status != Status.PUBLISHED) {
+            throw new IllegalStateException("Cannot edit in current state");
+        }
     }
 
     private boolean isDeleted() {
         return deletedAt != null;
     }
-
 }

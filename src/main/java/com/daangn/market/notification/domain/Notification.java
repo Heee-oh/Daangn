@@ -1,15 +1,36 @@
 package com.daangn.market.notification.domain;
 
-import com.daangn.market.common.domain.id.MemberId;
-import com.daangn.market.common.domain.id.NotificationId;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+@Entity
+@Getter
+@Table(name = "notification")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification {
-    private NotificationId id;
-    private MemberId memberId;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "notification_id")
+    private Long id;
+
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30, nullable = false)
     private NotificationType type;
+
+    @Column(name = "is_read", nullable = false)
     private boolean read;
+
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @Column(name = "read_at")
     private Instant readAt;
 }

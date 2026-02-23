@@ -1,10 +1,7 @@
 package com.daangn.market.Listing;
 
-import com.daangn.market.Listing.domain.HopeLocation;
 import com.daangn.market.Listing.domain.Listing;
 import com.daangn.market.Listing.domain.Status;
-import com.daangn.market.common.domain.id.MemberId;
-import com.daangn.market.common.domain.id.RegionId;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -125,13 +122,13 @@ class ListingTest {
         Assertions.assertThat(listing.isHidden()).isFalse();
 
 
-        listing.reserve(new MemberId(1234L));
+        listing.reserve(1234L);
         listing.hide();
         Assertions.assertThat(listing.isHidden()).isTrue();
         listing.unHide();
         Assertions.assertThat(listing.isHidden()).isFalse();
 
-        listing.markSoldOut(new MemberId(1234L));
+        listing.markSoldOut(1234L);
         listing.hide();
         Assertions.assertThat(listing.isHidden()).isTrue();
         listing.unHide();
@@ -159,7 +156,7 @@ class ListingTest {
                 .isInstanceOf(IllegalArgumentException.class);
 
 
-        Assertions.assertThatThrownBy(() -> listing.reserve(new MemberId(1234L)))
+        Assertions.assertThatThrownBy(() -> listing.reserve(1234L))
                 .as("예약 불가 상태 (초안)")
                 .isInstanceOf(IllegalStateException.class);
 
@@ -170,12 +167,12 @@ class ListingTest {
 
         listing.publish();
         listing.hide();
-        Assertions.assertThatThrownBy(() -> listing.reserve(new MemberId(1234L)))
+        Assertions.assertThatThrownBy(() -> listing.reserve(1234L))
                 .as("숨김 상태")
                 .isInstanceOf(IllegalStateException.class);
 
         listing.remove();
-        Assertions.assertThatThrownBy(() -> listing.reserve(new MemberId(1234L)))
+        Assertions.assertThatThrownBy(() -> listing.reserve(1234L))
                 .as("삭제된 게시글")
                 .isInstanceOf(IllegalStateException.class);
 
@@ -192,10 +189,10 @@ class ListingTest {
         Listing listing = Listing.draft();
         listing.publish();
 
-        listing.reserve(new MemberId(1234L));
+        listing.reserve(1234L);
 
         Assertions.assertThat(listing.getStatus()).isEqualTo(Status.RESERVED);
-        Assertions.assertThat(listing.getReserverId().getValue()).isEqualTo(1234L);
+        Assertions.assertThat(listing.getReserverId()).isEqualTo(1234L);
 
         listing.cancelReserve();
         Assertions.assertThat(listing.getStatus()).isEqualTo(Status.PUBLISHED);
@@ -213,20 +210,20 @@ class ListingTest {
                 .as("예약 상태가 아님")
                 .isInstanceOf(IllegalStateException.class);
 
-        Assertions.assertThatThrownBy(() -> listing.markSoldOut(new MemberId(1234L)))
+        Assertions.assertThatThrownBy(() -> listing.markSoldOut(1234L))
                 .as("예약 상태 아님")
                 .isInstanceOf(IllegalStateException.class);
 
-        listing.reserve(new MemberId(123L));
+        listing.reserve(123L);
 
-        Assertions.assertThatThrownBy(() -> listing.markSoldOut(new MemberId(1234L)))
+        Assertions.assertThatThrownBy(() -> listing.markSoldOut(1234L))
                 .as("잘못된 구매자 id")
                 .isInstanceOf(IllegalArgumentException.class);
 
         listing.cancelReserve();
         listing.remove();
 
-        Assertions.assertThatThrownBy(() -> listing.markSoldOut(new MemberId(1234L)))
+        Assertions.assertThatThrownBy(() -> listing.markSoldOut(1234L))
                 .as("삭제된 게시글")
                 .isInstanceOf(IllegalStateException.class);
 
@@ -238,10 +235,10 @@ class ListingTest {
         Listing listing = Listing.draft();
         listing.publish();
 
-        listing.reserve(new MemberId(123L));
-        listing.markSoldOut(new MemberId(123L));
+        listing.reserve(123L);
+        listing.markSoldOut(123L);
         Assertions.assertThat(listing.getStatus()).isEqualTo(Status.SOLD_OUT);
-        Assertions.assertThat(listing.getBuyerId().getValue()).isEqualTo(123L);
+        Assertions.assertThat(listing.getBuyerId()).isEqualTo(123L);
 
     }
 
@@ -250,7 +247,7 @@ class ListingTest {
     void removeFailTest() {
         Listing listing = Listing.draft();
         listing.publish();
-        listing.reserve(new MemberId(1L));
+        listing.reserve(1L);
         Assertions.assertThatThrownBy(() -> listing.remove())
                 .as("예약하고 삭제 시도")
                 .isInstanceOf(IllegalStateException.class);
@@ -274,7 +271,7 @@ class ListingTest {
 
         listing.publish();
 
-        listing.reserve(new MemberId(1234L));
+        listing.reserve(1234L);
         Assertions.assertThatThrownBy(() -> listing.updatePrice(0L, true))
                 .as("예약중 값 변경")
                 .isInstanceOf(IllegalStateException.class);

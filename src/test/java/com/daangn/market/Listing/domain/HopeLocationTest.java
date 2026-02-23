@@ -1,6 +1,5 @@
 package com.daangn.market.Listing.domain;
 
-import com.daangn.market.common.domain.id.RegionId;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,11 +18,11 @@ class HopeLocationTest {
                 .isInstanceOf(IllegalArgumentException.class);
 
         // lat log 순서 바뀜
-        Assertions.assertThatThrownBy(() -> new HopeLocation(new RegionId(123), 127, 33.3))
+        Assertions.assertThatThrownBy(() -> new HopeLocation(123, 127, 33.3))
                 .isInstanceOf(IllegalArgumentException.class);
 
         // lat log 경계값
-        Assertions.assertThatThrownBy(() -> new HopeLocation(new RegionId(123), -90, 181))
+        Assertions.assertThatThrownBy(() -> new HopeLocation(123, -90, 181))
                 .isInstanceOf(IllegalArgumentException.class);
 
 
