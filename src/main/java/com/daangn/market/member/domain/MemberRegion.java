@@ -1,5 +1,6 @@
 package com.daangn.market.member.domain;
 
+import com.daangn.market.member.domain.exception.memberRegion.RegionVerificationExpiredException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -45,19 +46,18 @@ public class MemberRegion {
     }
 
     public boolean isVerified() {
-        if (verifiedAt == null) {
-            return false;
+        return !isExpired(Instant.now());
+    }
+
+    public void verify(Instant now) {
+        if (isExpired(now)) {
+            this.verifiedAt = now;
         }
-        return verifiedAt.plus(VALIDITY_PERIOD).isAfter(Instant.now());
     }
 
-    public void verify() {
-        this.verifiedAt = Instant.now();
-    }
-
-    public void verifyRegion() {
+    public void checkVerification() {
         if (!isVerified()) {
-            throw new IllegalStateException("Region verification expired");
+            throw new RegionVerificationExpiredException("Region verification expired");
         }
     }
 
@@ -68,5 +68,10 @@ public class MemberRegion {
 
     public void unsetPrimary() {
         this.primary = false;
+    }
+
+    private boolean isExpired(Instant now) {
+        return verifiedAt == null
+                || verifiedAt.plus(VALIDITY_PERIOD).isBefore(now);
     }
 }

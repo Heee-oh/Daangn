@@ -9,7 +9,7 @@ public class GeometryUtil {
 
     private static final GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 4326);
 
-    public static Point createPoint(double lon, double lat) {
-        return factory.createPoint(new Coordinate(lon, lat));
+    public static Point createPoint(double lng, double lat) {
+        return factory.createPoint(new Coordinate(lng, lat));
     }
 }

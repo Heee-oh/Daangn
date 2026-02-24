@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MemberRegionTest {
 
     @Test
-    void verifyRegionTest() {
+    void checkVerificationTest() {
         MemberRegion memberRegion = new MemberRegion(123, true);
 
 
