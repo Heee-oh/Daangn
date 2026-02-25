@@ -27,14 +27,6 @@ public class MemberController {
     private final MemberCommandService memberCommandService;
     private final MemberQueryService memberQueryService;
 
-    @PostMapping
-    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        Long memberId = memberCommandService.signup(new MemberSignupCommand(request.nickname(), request.phoneNumber()));
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("memberId", memberId));
-    }
-
     @GetMapping("/me/regions")
     public ResponseEntity<?> myRegion(@AuthenticationPrincipal AuthPrincipal principal) {
         List<MemberRegionResponse> myRegions = memberQueryService.getMyRegions(principal.memberId());

@@ -6,4 +6,6 @@ public interface MemberRegionCommandService {
      * @param memberRegionId
      */
     void verifyMemberRegion(Long memberRegionId, Long memberId, double lat, double lng);
+
+    void verifyMemberRegionByRegionId(Integer regionId, Long memberId, double lat, double lng);
 }

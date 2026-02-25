@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6f0f">
+    <title>당근 마켓 API 콘솔</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <main class="app-shell">
+        <header class="hero card">
+            <div>
+                <p class="eyebrow">DAANGN WEB APP</p>
+                <h1>API 직접 검증용 프론트</h1>
+                <p class="hero-copy">
+                    로그인부터 동네 인증, 게시글 작성/게시/상태 변경/삭제, 관심목록 조회까지 한 번에 테스트할 수 있습니다.
+                </p>
+            </div>
+            <div class="hero-actions">
+                <button id="installBtn" class="btn ghost hidden" type="button">앱 설치</button>
+                <button id="logoutBtn" class="btn ghost" type="button">로그아웃</button>
+            </div>
+        </header>
+
+        <section class="grid">
+            <article class="card">
+                <h2>1) 연결 설정</h2>
+                <label>API 서버 주소</label>
+                <div class="row">
+                    <input id="baseUrlInput" type="text" value="http://localhost:8080" />
+                    <button id="saveConfigBtn" class="btn" type="button">저장</button>
+                </div>
+                <p class="hint">예: <code>http://localhost:8080</code></p>
+            </article>
+
+            <article class="card">
+                <h2>2) 인증</h2>
+                <form id="signupForm" class="stack">
+                    <h3>회원가입</h3>
+                    <input id="signupPhone" type="text" placeholder="전화번호 (01012345678)" required />
+                    <input id="signupNickname" type="text" placeholder="닉네임 (선택)" />
+                    <button class="btn" type="submit">가입 + 토큰 발급</button>
+                </form>
+                <form id="loginForm" class="stack">
+                    <h3>로그인</h3>
+                    <input id="loginPhone" type="text" placeholder="전화번호 (01012345678)" required />
+                    <button class="btn" type="submit">로그인 + 토큰 발급</button>
+                </form>
+                <div class="status-box">
+                    <p><strong>memberId:</strong> <span id="sessionMemberId">-</span></p>
+                    <p><strong>accessToken:</strong> <span id="sessionToken" class="mono">-</span></p>
+                </div>
+            </article>
+
+            <article class="card">
+                <h2>3) 동네 인증</h2>
+                <div class="row">
+                    <button id="loadRegionsBtn" class="btn" type="button">내 동네 목록 불러오기</button>
+                    <button id="useLocationBtn" class="btn ghost" type="button">현재 위치 채우기</button>
+                </div>
+                <label>내 동네(region_id)</label>
+                <select id="regionSelect">
+                    수원
+                </select>
+                <div class="split">
+                    <div>
+                        <label>lat</label>
+                        <input id="regionLat" type="number" step="0.000001" />
+                    </div>
+                    <div>
+                        <label>lng</label>
+                        <input id="regionLng" type="number" step="0.000001" />
+                    </div>
+                </div>
+                <button id="verifyRegionBtn" class="btn" type="button">동네 인증 요청</button>
+                <ul id="regionsList" class="inline-list"></ul>
+            </article>
+
+            <article class="card">
+                <h2>4) 게시글 작성/게시</h2>
+                <div class="row">
+                    <button id="createDraftBtn" class="btn" type="button">빈 Draft 생성</button>
+                    <button id="refreshListingsBtn" class="btn ghost" type="button">게시글들 조회</button>
+                </div>
+                <label>작업할 listing_id</label>
+                <input id="listingIdInput" type="number" />
+                <form id="updateListingForm" class="stack">
+                    <input id="titleInput" type="text" placeholder="제목" required />
+                    <textarea id="descriptionInput" placeholder="설명" required></textarea>
+                    <div class="split">
+                        <div>
+                            <label>category_id</label>
+                            <input id="categoryInput" type="number" required />
+                        </div>
+                        <div>
+                            <label>price_amount</label>
+                            <input id="priceInput" type="number" required />
+                        </div>
+                    </div>
+                    <label class="check-row">
+                        <input id="isFreeInput" type="checkbox" />
+                        무료 나눔
+                    </label>
+                    <div class="split">
+                        <div>
+                            <label>hope_location.region_id</label>
+                            <input id="hopeRegionInput" type="number" required />
+                        </div>
+                        <div>
+                            <label>hope_location.lat</label>
+                            <input id="hopeLatInput" type="number" step="0.000001" required />
+                        </div>
+                    </div>
+                    <div>
+                        <label>hope_location.lng</label>
+                        <input id="hopeLngInput" type="number" step="0.000001" required />
+                    </div>
+                    <label>image_urls (줄바꿈 또는 콤마)</label>
+                    <textarea id="imageUrlsInput" placeholder="https://img/1.png&#10;https://img/2.png"
+                        required></textarea>
+                    <button class="btn" type="submit">게시글 저장(PUT)</button>
+                </form>
+                <div class="row wrap">
+                    <button id="publishBtn" class="btn" type="button">게시</button>
+                    <button id="hideBtn" class="btn ghost" type="button">숨김</button>
+                    <button id="unhideBtn" class="btn ghost" type="button">숨김 해제</button>
+                </div>
+            </article>
+
+            <article class="card">
+                <h2>5) 관심목록</h2>
+                <div class="row">
+                    <input id="interestListingIdInput" type="number" placeholder="listing_id" />
+                    <button id="addInterestBtn" class="btn" type="button">관심 등록</button>
+                </div>
+                <div class="row">
+                    <button id="loadInterestsBtn" class="btn ghost" type="button">관심목록 조회</button>
+                </div>
+                <ul id="interestsList" class="inline-list"></ul>
+            </article>
+
+            <article class="card">
+                <h2>6) 상태 변경/삭제</h2>
+                <div class="split">
+                    <div>
+                        <label>buyer_id</label>
+                        <input id="buyerIdInput" type="number" placeholder="예: 200" />
+                    </div>
+                    <div class="button-col">
+                        <button id="reserveBtn" class="btn" type="button">예약중 변경</button>
+                        <button id="cancelReserveBtn" class="btn ghost" type="button">예약 취소</button>
+                        <button id="soldOutBtn" class="btn" type="button">판매완료 변경</button>
+                        <button id="deleteBtn" class="btn danger" type="button">게시글 삭제</button>
+                    </div>
+                </div>
+                <p class="hint">주의: 현재 도메인 규칙상 SOLD_OUT 상태에서는 삭제가 거절될 수 있습니다.</p>
+            </article>
+        </section>
+
+        <section class="card">
+            <h2>게시글 피드</h2>
+            <p class="hint">현재 백엔드에 목록 조회 API가 없어, 이 화면은 생성/조회한 listing_id를 기반으로 상세를 모아 보여줍니다.</p>
+            <div id="listingFeed" class="feed"></div>
+        </section>
+
+        <section class="card">
+            <h2>실행 로그</h2>
+            <pre id="logPanel" class="log-panel"></pre>
+        </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+</body>
+
+</html>

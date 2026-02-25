@@ -117,14 +117,6 @@ public class Member extends BaseTimeEntity {
     public void addRegion(MemberRegion region) {
         ensureActive();
 
-        long activeCount = regions.stream()
-                .filter(MemberRegion::isPrimary)
-                .count();
-
-        if (activeCount >= 2) {
-            throw new IllegalStateException("At most two primary regions are allowed");
-        }
-
         regions.add(region);
         region.updateMember(this);
     }

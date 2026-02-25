@@ -24,7 +24,7 @@ public class MemberRegion {
     private Integer regionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", nullable = false, updatable = false)
     private Member member;
 
     @Column(name = "is_primary", nullable = false)
@@ -39,10 +39,11 @@ public class MemberRegion {
     private static final Duration VALIDITY_PERIOD = Duration.ofDays(30);
 
     public MemberRegion(Integer regionId, boolean primary) {
+        Instant now = Instant.now();
         this.regionId = regionId;
         this.primary = primary;
-        this.createdAt = Instant.now();
-        this.verifiedAt = Instant.now();
+        this.createdAt = now;
+        this.verifiedAt = now;
     }
 
     public boolean isVerified() {
@@ -63,7 +64,6 @@ public class MemberRegion {
 
     public void updateMember(Member member) {
         this.member = member;
-        this.primary = true;
     }
 
     public void unsetPrimary() {
