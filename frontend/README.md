@@ -1,17 +1,17 @@
-# Frontend (Web + WebApp)
+﻿# Frontend Controller Test Console
 
-이 폴더는 백엔드 API를 직접 검증하기 위한 PWA 프론트입니다.
+`frontend/`는 백엔드 컨트롤러를 수동 테스트하기 위한 정적 웹 콘솔입니다.
 
 ## 실행 방법
 
-1. 백엔드 서버 실행
+1. 백엔드 실행
 ```bash
 ./gradlew bootRun
 ```
 
-2. 프론트 정적 서버 실행 (`frontend` 폴더에서)
+2. 프론트 정적 서버 실행 (프로젝트 루트에서)
 ```bash
-python -m http.server 5173
+python -m http.server 5173 --directory frontend
 ```
 
 3. 브라우저 접속
@@ -19,21 +19,40 @@ python -m http.server 5173
 http://localhost:5173
 ```
 
-## 기본 검증 시나리오
+## 지원 범위
 
-1. 회원가입 또는 로그인
-2. 내 동네 목록 조회
-3. 위경도 입력 후 동네 인증
-4. Draft 생성
-5. 게시글 저장(PUT)
-6. 게시
-7. 게시글들 조회(생성/조회했던 listing_id 기반)
-8. 관심 등록 + 관심목록 조회
-9. 예약중 변경
-10. 판매완료 변경
-11. 게시글 삭제 (도메인 규칙에 따라 상태에 따라 실패 가능)
+- `AuthController`
+  - `POST /api/auth/signup`
+  - `POST /api/auth/login`
+- `MemberRegionController`
+  - `POST /api/members/me/regions/{region_id}/verify`
+- `MemberController`
+  - `GET /api/members/me/regions`
+  - `GET /api/members/me`
+  - `PATCH /api/members/me`
+  - `PUT /api/members/me/profile-image`
+  - `PATCH /api/members/me/nickname`
+  - `PUT /api/members/me/interests/{listing_id}`
+  - `DELETE /api/members/me/interests/{listing_id}`
+  - `GET /api/members/me/interests`
+  - `DELETE /api/members/me`
+- `ListingController`
+  - `GET /api/listings`
+  - `POST /api/listings/drafts`
+  - `GET /api/listings/{listing_id}`
+  - `PUT /api/listings/{listing_id}`
+  - `POST /api/listings/{listing_id}/publish`
+  - `POST /api/listings/{listing_id}/hide`
+  - `POST /api/listings/{listing_id}/unhide`
+  - `POST /api/listings/{listing_id}/reserve`
+  - `POST /api/listings/{listing_id}/reserve/cancel`
+  - `POST /api/listings/{listing_id}/sold-out`
+  - `DELETE /api/listings/{listing_id}`
 
-## 참고
+## 특징
 
-- 이 프론트는 API 호출용으로 최소 상태를 `localStorage`에 저장합니다.
-- PWA 설치 버튼을 지원하며, 설치 후 웹앱 형태로 실행 가능합니다.
+- 버튼 클릭 즉시 API 호출
+- 마지막 응답을 `status + body`로 즉시 표시
+- 요청 히스토리(최신순) 제공
+- 로그인/회원가입 응답에서 토큰 자동 반영
+- 요청 JSON/쿼리 키는 `snake_case` 기준으로 전송

@@ -28,10 +28,6 @@ public class HopeLocation {
     @Column(name = "hope_lng", precision = 10, scale = 7)
     private BigDecimal lng;
 
-    public HopeLocation(Integer regionId, double lat, double lng) {
-        this(regionId, BigDecimal.valueOf(lat), BigDecimal.valueOf(lng));
-    }
-
     public HopeLocation(Integer regionId, BigDecimal lat, BigDecimal lng) {
         if (regionId == null) {
             throw new ListingBadRequestException("regionId is required");

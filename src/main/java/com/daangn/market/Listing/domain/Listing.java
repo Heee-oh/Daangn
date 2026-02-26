@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Listing extends BaseTimeEntity {
 
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "listing_id")
     private Long id;
 
@@ -71,12 +71,7 @@ public class Listing extends BaseTimeEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    @PrePersist
-    protected void init() {
-        if (id == null) {
-            id = TsidCreator.getTsid().toLong();
-        }
-    }
+
 
     public static Listing draft() {
         Listing l = new Listing();

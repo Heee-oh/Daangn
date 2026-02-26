@@ -10,12 +10,9 @@ import com.daangn.market.member.domain.QMemberRegion;
 import com.daangn.market.region.domain.QRegion;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.MultiPolygon;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -34,31 +31,33 @@ public class ListingJpaRepositoryCustomImpl implements ListingJpaRepositoryCusto
 
     private final JPAQueryFactory queryFactory;
 
-    private static final QMember member = QMember.member;
     private static final QListing listing = QListing.listing;
-    private static final QMemberRegion memberRegion = QMemberRegion.memberRegion;
     private static final QRegion region = QRegion.region;
     private static final QListingImage image = QListingImage.listingImage;
+    private static final QRegion base = new QRegion("base");
 
+
+    /**
+     * 내 행정동 7KM 범위 내 판매글 조회 (작성중 x, 슬라이스)
+     * @param memberId 본인 id
+     * @param regionId 해당 멤버의 행정동 id
+     * @param lastListingId
+     * @param size
+     * @param pageable
+     * @return
+     */
     @Override
     @Transactional(readOnly = true)
     public Slice<ListingResponse> findListings(Long memberId, Integer regionId, Long lastListingId, int size, Pageable pageable) {
         // 반경 7~10km 주의의 행정동을 뽑고,
         // 해당 행정동의 게시글들을 조회
 
-        // 사용자의 행정동 멀티 폴리곤 조회
-        MultiPolygon memberRegion = queryFactory.select(region.geom)
-                .from(region)
-                .where(region.id.eq(regionId))
-                .fetchFirst();
-
-        if (memberRegion == null) return new SliceImpl<>(Collections.emptyList());
-
         // 행정동의 7KM 반경의 행정동 판별
         BooleanExpression isWithin7Km = Expressions.booleanTemplate(
-                "function('ST_DWithin', {0}, {1}, 7000) = true",
+                "function('ST_DWithin', {0}, {1}, {2}) = true",
                 region.geom,
-                memberRegion
+                base.geom,
+                7000.0d
         );
 
         List<ListingResponse> fetch
@@ -80,11 +79,17 @@ public class ListingJpaRepositoryCustomImpl implements ListingJpaRepositoryCusto
                         listing.updatedAt
                 ))
                 .from(listing)
-                .leftJoin(image).on(listing.id.eq(image.listing.id))
+                .leftJoin(image)
+                .on(listing.id.eq(image.listing.id)
+                        .and(image.sortOrder.isNull()
+                                .or(image.sortOrder.eq(0)))
+                )
                 .join(region).on(region.id.eq(listing.regionId))
+                .join(base).on(base.id.eq(regionId))
                 .where(
                         isWithin7Km,
                         listing.id.lt(lastListingId),
+                        listing.isHidden.isFalse(),
                         listing.status.ne(Status.DRAFT)
                 )
                 .orderBy(listing.id.desc())
@@ -94,6 +99,7 @@ public class ListingJpaRepositoryCustomImpl implements ListingJpaRepositoryCusto
 
         int pageSize = pageable.getPageSize();
         boolean hasNext = fetch.size() > pageSize;
+
         if (hasNext) {
             fetch.removeLast();
         }

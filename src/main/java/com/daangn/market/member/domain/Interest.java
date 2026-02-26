@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Interest {
 
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "interest_id")
     private Long id;
 
@@ -23,12 +23,7 @@ public class Interest {
     @Column(name = "listing_id", nullable = false, updatable = false)
     private Long listingId;
 
-    @PrePersist
-    void init() {
-        if (id == null) {
-            id = TsidCreator.getTsid().toLong();
-        }
-    }
+
 
     public Interest(Long listingId) {
         this.listingId = listingId;

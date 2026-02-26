@@ -23,7 +23,7 @@ public class ListingMyBatisRepositoryImpl implements ListingMyBatisRepository {
 
         int pageSize = pageable.getPageSize();
 
-        List<ListingResponse> nearbyListings = listingMapper.findNearbyListings(regionId, lastListingId, size);
+        List<ListingResponse> nearbyListings = listingMapper.findNearbyListings(regionId, lastListingId, size + 1);
 
         boolean hasNext = nearbyListings.size() > pageSize;
 

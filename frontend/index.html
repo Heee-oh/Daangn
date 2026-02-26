@@ -1,182 +1,158 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ff6f0f">
-    <title>당근 마켓 API 콘솔</title>
+    <meta name="theme-color" content="#122620">
+    <title>Daangn Controller Test Console</title>
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="stylesheet" href="./styles.css">
 </head>
-
 <body>
-    <div class="bg-orb orb-a"></div>
-    <div class="bg-orb orb-b"></div>
+<main class="layout">
+    <header class="panel hero">
+        <p class="eyebrow">DAANGN MARKET</p>
+        <h1>Controller Test Console</h1>
+        <p>모든 컨트롤러 엔드포인트를 즉시 호출하고 응답을 바로 확인할 수 있는 테스트 화면입니다.</p>
+    </header>
 
-    <main class="app-shell">
-        <header class="hero card">
-            <div>
-                <p class="eyebrow">DAANGN WEB APP</p>
-                <h1>API 직접 검증용 프론트</h1>
-                <p class="hero-copy">
-                    로그인부터 동네 인증, 게시글 작성/게시/상태 변경/삭제, 관심목록 조회까지 한 번에 테스트할 수 있습니다.
-                </p>
+    <section class="panel session-panel">
+        <h2>Session</h2>
+        <div class="row">
+            <label for="baseUrl">Base URL</label>
+            <input id="baseUrl" type="text" value="http://localhost:8080">
+            <button id="saveConfigBtn" type="button">Save</button>
+        </div>
+        <div class="row">
+            <label for="tokenInput">Access Token</label>
+            <input id="tokenInput" type="text" placeholder="Bearer token without prefix">
+            <button id="applyTokenBtn" type="button">Apply</button>
+            <button id="clearTokenBtn" type="button" class="ghost">Clear</button>
+        </div>
+        <p class="hint">Current memberId: <strong id="currentMemberId">-</strong></p>
+    </section>
+
+    <section class="controller-grid">
+        <article class="panel">
+            <h2>AuthController</h2>
+            <div class="stack">
+                <label for="authPhone">phone_number</label>
+                <input id="authPhone" type="text" placeholder="01012345678">
+                <label for="authNickname">nickname (signup)</label>
+                <input id="authNickname" type="text" placeholder="tester">
             </div>
-            <div class="hero-actions">
-                <button id="installBtn" class="btn ghost hidden" type="button">앱 설치</button>
-                <button id="logoutBtn" class="btn ghost" type="button">로그아웃</button>
+            <div class="actions">
+                <button id="signupBtn" type="button">POST /api/auth/signup</button>
+                <button id="loginBtn" type="button" class="ghost">POST /api/auth/login</button>
             </div>
-        </header>
+        </article>
 
-        <section class="grid">
-            <article class="card">
-                <h2>1) 연결 설정</h2>
-                <label>API 서버 주소</label>
-                <div class="row">
-                    <input id="baseUrlInput" type="text" value="http://localhost:8080" />
-                    <button id="saveConfigBtn" class="btn" type="button">저장</button>
-                </div>
-                <p class="hint">예: <code>http://localhost:8080</code></p>
-            </article>
+        <article class="panel">
+            <h2>Shared Inputs</h2>
+            <div class="stack">
+                <label for="regionIdInput">region_id</label>
+                <input id="regionIdInput" type="number" value="11000">
+                <label for="listingIdInput">listing_id</label>
+                <input id="listingIdInput" type="number" value="">
+                <label for="interestListingIdInput">interest listing_id</label>
+                <input id="interestListingIdInput" type="number" value="">
+                <label for="buyerIdInput">buyer_id</label>
+                <input id="buyerIdInput" type="number" value="200">
+                <label for="latInput">lat</label>
+                <input id="latInput" type="number" step="0.000001" value="37.5665">
+                <label for="lngInput">lng</label>
+                <input id="lngInput" type="number" step="0.000001" value="126.9780">
+            </div>
+        </article>
 
-            <article class="card">
-                <h2>2) 인증</h2>
-                <form id="signupForm" class="stack">
-                    <h3>회원가입</h3>
-                    <input id="signupPhone" type="text" placeholder="전화번호 (01012345678)" required />
-                    <input id="signupNickname" type="text" placeholder="닉네임 (선택)" />
-                    <button class="btn" type="submit">가입 + 토큰 발급</button>
-                </form>
-                <form id="loginForm" class="stack">
-                    <h3>로그인</h3>
-                    <input id="loginPhone" type="text" placeholder="전화번호 (01012345678)" required />
-                    <button class="btn" type="submit">로그인 + 토큰 발급</button>
-                </form>
-                <div class="status-box">
-                    <p><strong>memberId:</strong> <span id="sessionMemberId">-</span></p>
-                    <p><strong>accessToken:</strong> <span id="sessionToken" class="mono">-</span></p>
-                </div>
-            </article>
+        <article class="panel">
+            <h2>MemberRegionController</h2>
+            <div class="actions">
+                <button id="verifyRegionBtn" type="button">POST /api/members/me/regions/{region_id}/verify</button>
+            </div>
+            <p class="hint">lat/lng + region_id를 사용합니다.</p>
+        </article>
 
-            <article class="card">
-                <h2>3) 동네 인증</h2>
-                <div class="row">
-                    <button id="loadRegionsBtn" class="btn" type="button">내 동네 목록 불러오기</button>
-                    <button id="useLocationBtn" class="btn ghost" type="button">현재 위치 채우기</button>
-                </div>
-                <label>내 동네(region_id)</label>
-                <select id="regionSelect">
-                    수원
-                </select>
-                <div class="split">
-                    <div>
-                        <label>lat</label>
-                        <input id="regionLat" type="number" step="0.000001" />
-                    </div>
-                    <div>
-                        <label>lng</label>
-                        <input id="regionLng" type="number" step="0.000001" />
-                    </div>
-                </div>
-                <button id="verifyRegionBtn" class="btn" type="button">동네 인증 요청</button>
-                <ul id="regionsList" class="inline-list"></ul>
-            </article>
+        <article class="panel">
+            <h2>MemberController</h2>
+            <div class="actions two-col">
+                <button id="memberMeBtn" type="button">GET /api/members/me</button>
+                <button id="memberRegionsBtn" type="button">GET /api/members/me/regions</button>
+                <button id="updateMemberBtn" type="button">PATCH /api/members/me</button>
+                <button id="updateProfileBtn" type="button">PUT /api/members/me/profile-image</button>
+                <button id="updateNicknameBtn" type="button">PATCH /api/members/me/nickname</button>
+                <button id="addInterestBtn" type="button">PUT /api/members/me/interests/{listing_id}</button>
+                <button id="deleteInterestBtn" type="button">DELETE /api/members/me/interests/{listing_id}</button>
+                <button id="listInterestsBtn" type="button">GET /api/members/me/interests</button>
+                <button id="withdrawBtn" type="button" class="danger">DELETE /api/members/me</button>
+            </div>
+            <label for="updateMemberBody">PATCH /me body (JSON)</label>
+            <textarea id="updateMemberBody" spellcheck="false">{
+  "nickname": "updated-nick",
+  "profile_image": "https://img.example/profile.png"
+}</textarea>
+            <label for="profileImageInput">profile_image</label>
+            <input id="profileImageInput" type="text" value="https://img.example/profile.png">
+            <label for="nicknameInput">nickname</label>
+            <input id="nicknameInput" type="text" value="updated-nick">
+            <div class="row">
+                <label for="lastInterestIdInput">last_interest_id</label>
+                <input id="lastInterestIdInput" type="number" placeholder="optional">
+                <label for="interestSizeInput">size</label>
+                <input id="interestSizeInput" type="number" value="20">
+            </div>
+        </article>
 
-            <article class="card">
-                <h2>4) 게시글 작성/게시</h2>
-                <div class="row">
-                    <button id="createDraftBtn" class="btn" type="button">빈 Draft 생성</button>
-                    <button id="refreshListingsBtn" class="btn ghost" type="button">게시글들 조회</button>
-                </div>
-                <label>작업할 listing_id</label>
-                <input id="listingIdInput" type="number" />
-                <form id="updateListingForm" class="stack">
-                    <input id="titleInput" type="text" placeholder="제목" required />
-                    <textarea id="descriptionInput" placeholder="설명" required></textarea>
-                    <div class="split">
-                        <div>
-                            <label>category_id</label>
-                            <input id="categoryInput" type="number" required />
-                        </div>
-                        <div>
-                            <label>price_amount</label>
-                            <input id="priceInput" type="number" required />
-                        </div>
-                    </div>
-                    <label class="check-row">
-                        <input id="isFreeInput" type="checkbox" />
-                        무료 나눔
-                    </label>
-                    <div class="split">
-                        <div>
-                            <label>hope_location.region_id</label>
-                            <input id="hopeRegionInput" type="number" required />
-                        </div>
-                        <div>
-                            <label>hope_location.lat</label>
-                            <input id="hopeLatInput" type="number" step="0.000001" required />
-                        </div>
-                    </div>
-                    <div>
-                        <label>hope_location.lng</label>
-                        <input id="hopeLngInput" type="number" step="0.000001" required />
-                    </div>
-                    <label>image_urls (줄바꿈 또는 콤마)</label>
-                    <textarea id="imageUrlsInput" placeholder="https://img/1.png&#10;https://img/2.png"
-                        required></textarea>
-                    <button class="btn" type="submit">게시글 저장(PUT)</button>
-                </form>
-                <div class="row wrap">
-                    <button id="publishBtn" class="btn" type="button">게시</button>
-                    <button id="hideBtn" class="btn ghost" type="button">숨김</button>
-                    <button id="unhideBtn" class="btn ghost" type="button">숨김 해제</button>
-                </div>
-            </article>
+        <article class="panel">
+            <h2>ListingController</h2>
+            <div class="actions two-col">
+                <button id="getListingsBtn" type="button">GET /api/listings</button>
+                <button id="createDraftBtn" type="button">POST /api/listings/drafts</button>
+                <button id="getListingBtn" type="button">GET /api/listings/{listing_id}</button>
+                <button id="updateListingBtn" type="button">PUT /api/listings/{listing_id}</button>
+                <button id="publishBtn" type="button">POST /publish</button>
+                <button id="hideBtn" type="button">POST /hide</button>
+                <button id="unhideBtn" type="button">POST /unhide</button>
+                <button id="reserveBtn" type="button">POST /reserve</button>
+                <button id="cancelReserveBtn" type="button">POST /reserve/cancel</button>
+                <button id="soldOutBtn" type="button">POST /sold-out</button>
+                <button id="deleteListingBtn" type="button" class="danger">DELETE /api/listings/{listing_id}</button>
+            </div>
+            <div class="row">
+                <label for="lastListingIdInput">last_listing_id</label>
+                <input id="lastListingIdInput" type="number" placeholder="optional">
+            </div>
+            <label for="listingUpdateBody">PUT /listings/{listing_id} body (JSON)</label>
+            <textarea id="listingUpdateBody" spellcheck="false">{
+  "title": "Updated title",
+  "description": "Updated description",
+  "category_id": 1,
+  "price_amount": 1000,
+  "is_free": false,
+  "hope_location": {
+    "region_id": 11000,
+    "lat": 37.5665,
+    "lng": 126.978
+  },
+  "image_urls": [
+    "https://img/1.png"
+  ]
+}</textarea>
+        </article>
+    </section>
 
-            <article class="card">
-                <h2>5) 관심목록</h2>
-                <div class="row">
-                    <input id="interestListingIdInput" type="number" placeholder="listing_id" />
-                    <button id="addInterestBtn" class="btn" type="button">관심 등록</button>
-                </div>
-                <div class="row">
-                    <button id="loadInterestsBtn" class="btn ghost" type="button">관심목록 조회</button>
-                </div>
-                <ul id="interestsList" class="inline-list"></ul>
-            </article>
+    <section class="panel response-panel">
+        <h2>Live Response</h2>
+        <div class="response-head">
+            <p id="requestLine">-</p>
+            <p><span id="statusBadge" class="badge">-</span> <span id="durationText">-</span></p>
+        </div>
+        <pre id="responseBody">{}</pre>
+        <h3>History</h3>
+        <ul id="historyList" class="history"></ul>
+    </section>
+</main>
 
-            <article class="card">
-                <h2>6) 상태 변경/삭제</h2>
-                <div class="split">
-                    <div>
-                        <label>buyer_id</label>
-                        <input id="buyerIdInput" type="number" placeholder="예: 200" />
-                    </div>
-                    <div class="button-col">
-                        <button id="reserveBtn" class="btn" type="button">예약중 변경</button>
-                        <button id="cancelReserveBtn" class="btn ghost" type="button">예약 취소</button>
-                        <button id="soldOutBtn" class="btn" type="button">판매완료 변경</button>
-                        <button id="deleteBtn" class="btn danger" type="button">게시글 삭제</button>
-                    </div>
-                </div>
-                <p class="hint">주의: 현재 도메인 규칙상 SOLD_OUT 상태에서는 삭제가 거절될 수 있습니다.</p>
-            </article>
-        </section>
-
-        <section class="card">
-            <h2>게시글 피드</h2>
-            <p class="hint">현재 백엔드에 목록 조회 API가 없어, 이 화면은 생성/조회한 listing_id를 기반으로 상세를 모아 보여줍니다.</p>
-            <div id="listingFeed" class="feed"></div>
-        </section>
-
-        <section class="card">
-            <h2>실행 로그</h2>
-            <pre id="logPanel" class="log-panel"></pre>
-        </section>
-    </main>
-
-    <script src="./app.js" type="module"></script>
+<script src="./app.js" type="module"></script>
 </body>
-
 </html>

@@ -3,6 +3,7 @@ package com.daangn.market.Listing.presentation;
 import com.daangn.market.Listing.application.ListingCommandService;
 import com.daangn.market.Listing.application.ListingQueryService;
 import com.daangn.market.Listing.application.dto.ListingDetailResponse;
+import com.daangn.market.Listing.exception.ListingBadRequestException;
 import com.daangn.market.Listing.presentation.dto.request.ListingReserveRequest;
 import com.daangn.market.Listing.presentation.dto.request.ListingSoldOutRequest;
 import com.daangn.market.Listing.presentation.dto.request.ListingUpdateRequest;
@@ -28,96 +29,103 @@ public class ListingController {
     @GetMapping()
     public ResponseEntity<?> getListings(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @RequestParam Integer regionId,
-            @RequestParam(required = false) Long lastListingId
+            @RequestParam(name = "region_id", required = false) Integer snakeRegionId,
+            @RequestParam(name = "regionId", required = false) Integer camelRegionId,
+            @RequestParam(name = "last_listing_id", required = false) Long snakeLastListingId,
+            @RequestParam(name = "lastListingId", required = false) Long camelLastListingId
     ) {
+        Integer regionId = snakeRegionId != null ? snakeRegionId : camelRegionId;
+        if (regionId == null) {
+            throw new ListingBadRequestException("region_id is required");
+        }
 
+        Long lastListingId = snakeLastListingId != null ? snakeLastListingId : camelLastListingId;
         long cursor = lastListingId == null ? Long.MAX_VALUE : lastListingId;
         return ResponseEntity.ok(listingQueryService.getListings(principal.memberId(), regionId, cursor));
     }
 
     @PostMapping("/drafts")
-    public ResponseEntity<?> createDraft(@AuthenticationPrincipal AuthPrincipal principal, @RequestParam Integer regionId) {
+    public ResponseEntity<?> createDraft(@AuthenticationPrincipal AuthPrincipal principal, @RequestParam("region_id") Integer regionId) {
         Long listingId = listingCommandService.createDraft(principal.memberId(), regionId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("listingId", listingId));
     }
 
-    @GetMapping("/{listingId}")
-    public ResponseEntity<ListingDetailResponse> getListing(@PathVariable Long listingId) {
+    @GetMapping("/{listing_id}")
+    public ResponseEntity<ListingDetailResponse> getListing(@PathVariable("listing_id") Long listingId) {
         return ResponseEntity.ok(listingQueryService.getListing(listingId));
     }
 
-    @PutMapping("/{listingId}")
+    @PutMapping("/{listing_id}")
     public ResponseEntity<?> update(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId,
+            @PathVariable("listing_id") Long listingId,
             @Valid @RequestBody ListingUpdateRequest request
     ) {
         listingCommandService.update(principal.memberId(), listingId, request.toCommand());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{listingId}/publish")
+    @PostMapping("/{listing_id}/publish")
     public ResponseEntity<?> publish(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId
+            @PathVariable("listing_id") Long listingId
     ) {
         listingCommandService.publish(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{listingId}/hide")
+    @PostMapping("/{listing_id}/hide")
     public ResponseEntity<?> hide(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId
+            @PathVariable("listing_id") Long listingId
     ) {
         listingCommandService.hide(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{listingId}/unhide")
+    @PostMapping("/{listing_id}/unhide")
     public ResponseEntity<?> unhide(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId
+            @PathVariable("listing_id") Long listingId
     ) {
         listingCommandService.unhide(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{listingId}/reserve")
+    @PostMapping("/{listing_id}/reserve")
     public ResponseEntity<?> reserve(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId,
+            @PathVariable("listing_id") Long listingId,
             @Valid @RequestBody ListingReserveRequest request
     ) {
         listingCommandService.reserve(principal.memberId(), listingId, request.buyerId());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{listingId}/reserve/cancel")
+    @PostMapping("/{listing_id}/reserve/cancel")
     public ResponseEntity<?> cancelReserve(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId
+            @PathVariable("listing_id") Long listingId
     ) {
         listingCommandService.cancelReserve(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{listingId}/sold-out")
+    @PostMapping("/{listing_id}/sold-out")
     public ResponseEntity<?> markSoldOut(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId,
+            @PathVariable("listing_id") Long listingId,
             @Valid @RequestBody ListingSoldOutRequest request
     ) {
         listingCommandService.markSoldOut(principal.memberId(), listingId, request.buyerId());
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{listingId}")
+    @DeleteMapping("/{listing_id}")
     public ResponseEntity<?> delete(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId
+            @PathVariable("listing_id") Long listingId
     ) {
         listingCommandService.remove(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();

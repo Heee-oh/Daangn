@@ -8,11 +8,11 @@ import com.daangn.market.member.domain.exception.memberRegion.MemberRegionVerifi
 import com.daangn.market.member.infrastructure.member.MemberJpaRepository;
 import com.daangn.market.member.infrastructure.memberRegion.MemberRegionJpaRepository;
 import com.daangn.market.region.infrastructure.RegionJpaRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Service
@@ -24,27 +24,31 @@ public class MemberRegionCommandServiceImpl implements MemberRegionCommandServic
     private final MemberRegionJpaRepository memberRegionJpaRepository;
     private final RegionJpaRepository regionJpaRepository;
 
-
     @Override
-    public void verifyMemberRegion(Long memberRegionId, Long memberId, double lat, double lng) {
+    public void verifyMemberRegion(Long memberRegionId, Long memberId, BigDecimal lat, BigDecimal lng) {
         MemberRegion memberRegion = memberRegionJpaRepository.findMemberRegionByIdAndMemberId(memberRegionId, memberId)
                 .orElseThrow(MemberRegionNotFoundException::new);
+
+        if (memberRegion.getRegionId() == null) {
+            throw new MemberRegionNotFoundException();
+        }
 
         verify(memberRegion, lat, lng);
     }
 
     @Override
-    public void verifyMemberRegionByRegionId(Integer regionId, Long memberId, double lat, double lng) {
-        if (regionJpaRepository.validateCoordinateInRegion(regionId, lat, lng)) {
-            Member member = memberJpaRepository.findById(memberId)
-                    .orElseThrow(MemberNotFoundException::new);
-
-            member.addRegion(new MemberRegion(regionId, true));
+    public void verifyMemberRegionByRegionId(Integer regionId, Long memberId, BigDecimal lat, BigDecimal lng) {
+        if (!regionJpaRepository.validateCoordinateInRegion(regionId, lat, lng)) {
+            throw new MemberRegionVerificationFailedException();
         }
+
+        Member member = memberJpaRepository.findById(memberId)
+                .orElseThrow(MemberNotFoundException::new);
+
+        member.addRegion(new MemberRegion(regionId, true));
     }
 
-    private void verify(MemberRegion memberRegion, double lat, double lng) {
-
+    private void verify(MemberRegion memberRegion, BigDecimal lat, BigDecimal lng) {
         Integer regionId = memberRegion.getRegionId();
 
         if (regionId == null) {

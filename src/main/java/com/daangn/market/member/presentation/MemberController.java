@@ -63,18 +63,18 @@ public class MemberController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/me/interests/{listingId}")
+    @PutMapping("/me/interests/{listing_id}")
     public ResponseEntity<?> addInterest(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId) {
+            @PathVariable("listing_id") Long listingId) {
         memberCommandService.addInterest(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/me/interests/{listingId}")
+    @DeleteMapping("/me/interests/{listing_id}")
     public ResponseEntity<?> deleteInterest(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId) {
+            @PathVariable("listing_id") Long listingId) {
         memberCommandService.deleteInterest(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }

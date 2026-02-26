@@ -4,6 +4,7 @@ import com.daangn.market.Listing.application.ListingCommandService;
 import com.daangn.market.Listing.application.ListingQueryService;
 import com.daangn.market.Listing.application.dto.ListingDetailResponse;
 import com.daangn.market.Listing.application.dto.ListingImageResponse;
+import com.daangn.market.Listing.application.dto.ListingResponse;
 import com.daangn.market.Listing.exception.ListingNotFoundException;
 import com.daangn.market.common.auth.AuthPrincipal;
 import org.junit.jupiter.api.AfterEach;
@@ -19,6 +20,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -29,8 +33,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -68,13 +74,65 @@ class ListingControllerTest {
     void createDraftReturnsCreated() throws Exception {
         when(listingCommandService.createDraft(1L, 1)).thenReturn(100L);
 
-        mockMvc.perform(post("/api/listings/drafts").with(authenticated(1L)))
+        mockMvc.perform(post("/api/listings/drafts")
+                        .param("region_id", "1")
+                        .with(authenticated(1L)))
+
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.listingId").value(100L));
+                .andExpect(jsonPath("$.listingId")
+                        .value(100L));
 
         ArgumentCaptor<Long> sellerCaptor = ArgumentCaptor.forClass(Long.class);
-        verify(listingCommandService).createDraft(sellerCaptor.capture(), 1);
+        verify(listingCommandService).createDraft(sellerCaptor.capture(), eq(1));
         assertThat(sellerCaptor.getValue()).isEqualTo(1L);
+    }
+
+    @Test
+    void getListingsUsesRequestedCursor() throws Exception {
+        Slice<ListingResponse> slice = new SliceImpl<>(List.of(), PageRequest.of(0, 20), false);
+        when(listingQueryService.getListings(1L, 11000, 88L)).thenReturn(slice);
+
+        mockMvc.perform(get("/api/listings")
+                        .param("region_id", "11000")
+                        .param("last_listing_id", "88")
+                        .with(authenticated(1L)))
+                .andExpect(status().isOk());
+
+        verify(listingQueryService).getListings(1L, 11000, 88L);
+    }
+
+    @Test
+    void getListingsUsesDefaultCursorWhenMissingLastListingId() throws Exception {
+        Slice<ListingResponse> slice = new SliceImpl<>(List.of(), PageRequest.of(0, 20), false);
+        when(listingQueryService.getListings(1L, 11000, Long.MAX_VALUE)).thenReturn(slice);
+
+        mockMvc.perform(get("/api/listings")
+                        .param("region_id", "11000")
+                        .with(authenticated(1L)))
+                .andExpect(status().isOk());
+
+        verify(listingQueryService).getListings(1L, 11000, Long.MAX_VALUE);
+    }
+
+    @Test
+    void getListingsAlsoAcceptsLegacyCamelCaseParams() throws Exception {
+        Slice<ListingResponse> slice = new SliceImpl<>(List.of(), PageRequest.of(0, 20), false);
+        when(listingQueryService.getListings(1L, 11000, 88L)).thenReturn(slice);
+
+        mockMvc.perform(get("/api/listings")
+                        .param("regionId", "11000")
+                        .param("lastListingId", "88")
+                        .with(authenticated(1L)))
+                .andExpect(status().isOk());
+
+        verify(listingQueryService).getListings(1L, 11000, 88L);
+    }
+
+    @Test
+    void getListingsReturnsBadRequestWhenRegionIsMissing() throws Exception {
+        mockMvc.perform(get("/api/listings").with(authenticated(1L)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("LISTING_BAD_REQUEST"));
     }
 
     @Test
@@ -114,6 +172,68 @@ class ListingControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(listingCommandService).publish(1L, 10L);
+    }
+
+    @Test
+    void hideReturnsNoContent() throws Exception {
+        mockMvc.perform(post("/api/listings/{listingId}/hide", 10L).with(authenticated(1L)))
+                .andExpect(status().isNoContent());
+
+        verify(listingCommandService).hide(1L, 10L);
+    }
+
+    @Test
+    void unhideReturnsNoContent() throws Exception {
+        mockMvc.perform(post("/api/listings/{listingId}/unhide", 10L).with(authenticated(1L)))
+                .andExpect(status().isNoContent());
+
+        verify(listingCommandService).unhide(1L, 10L);
+    }
+
+    @Test
+    void reserveReturnsNoContent() throws Exception {
+        mockMvc.perform(post("/api/listings/{listingId}/reserve", 10L)
+                        .with(authenticated(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "buyerId": 200
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        verify(listingCommandService).reserve(1L, 10L, 200L);
+    }
+
+    @Test
+    void cancelReserveReturnsNoContent() throws Exception {
+        mockMvc.perform(post("/api/listings/{listingId}/reserve/cancel", 10L).with(authenticated(1L)))
+                .andExpect(status().isNoContent());
+
+        verify(listingCommandService).cancelReserve(1L, 10L);
+    }
+
+    @Test
+    void markSoldOutReturnsNoContent() throws Exception {
+        mockMvc.perform(post("/api/listings/{listingId}/sold-out", 10L)
+                        .with(authenticated(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "buyerId": 200
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        verify(listingCommandService).markSoldOut(1L, 10L, 200L);
+    }
+
+    @Test
+    void deleteReturnsNoContent() throws Exception {
+        mockMvc.perform(delete("/api/listings/{listingId}", 10L).with(authenticated(1L)))
+                .andExpect(status().isNoContent());
+
+        verify(listingCommandService).remove(1L, 10L);
     }
 
     @Test

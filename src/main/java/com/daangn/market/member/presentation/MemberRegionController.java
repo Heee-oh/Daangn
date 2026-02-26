@@ -20,10 +20,10 @@ public class MemberRegionController {
 
     private final MemberRegionCommandService memberRegionCommandService;
 
-    @PostMapping("/{regionId}/verify")
+    @PostMapping("/{region_id}/verify")
     public ResponseEntity<Void> verify(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Integer regionId,
+            @PathVariable("region_id") Integer regionId,
             @Valid @RequestBody MemberRegionVerifyRequest request
     ) {
         memberRegionCommandService.verifyMemberRegionByRegionId(regionId, principal.memberId(), request.lat(), request.lng());

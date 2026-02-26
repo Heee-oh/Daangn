@@ -33,6 +33,6 @@ public class ListingQueryServiceImpl implements ListingQueryService {
     public Slice<ListingResponse> getListings(Long memberId, Integer regionId, Long lastListingId) {
         PageRequest pageRequest = PageRequest.of(0, 20);
 
-        return listingJpaRepository.findAllListings(memberId, regionId, lastListingId, 20, pageRequest);
+        return listingJpaRepository.findListings(memberId, regionId, lastListingId, 20, pageRequest);
     }
 }

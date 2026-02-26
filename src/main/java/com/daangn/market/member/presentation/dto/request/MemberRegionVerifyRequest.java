@@ -2,8 +2,10 @@ package com.daangn.market.member.presentation.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
+
 public record MemberRegionVerifyRequest(
-        @NotNull Double lat,
-        @NotNull Double lng
+        @NotNull BigDecimal lat,
+        @NotNull BigDecimal lng
 ) {
 }
