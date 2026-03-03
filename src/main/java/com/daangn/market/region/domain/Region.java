@@ -42,6 +42,6 @@ public class Region {
     @Column(length = 20, nullable = false)
     private String dongnm;
 
-    @Column(columnDefinition = "geometry(MultiPolygon, 4326)", nullable = false)
+    @Column(columnDefinition = "geography(MultiPolygon, 4326)", nullable = false)
     private MultiPolygon geom;
 }

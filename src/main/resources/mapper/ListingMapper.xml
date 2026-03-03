@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.daangn.market.Listing.infrastructure.mapper.ListingMapper">
+    <resultMap id="ListingResponseMap" type="ListingResponse">
+        <constructor>
+            <arg column="listing_id" javaType="Long"/>
+            <arg column="seller_id" javaType="Long"/>
+            <arg column="title" javaType="String"/>
+            <arg column="category_id" javaType="Long"/>
+            <arg column="price" javaType="Long"/>
+            <arg column="is_free" javaType="boolean"/>
+            <arg column="status" javaType="com.daangn.market.Listing.domain.Status"/>
+            <arg column="dongnm" javaType="String"/>
+            <arg column="hope_region_id" javaType="Integer"/>
+            <arg column="hope_lat" javaType="java.math.BigDecimal"/>
+            <arg column="hope_lng" javaType="java.math.BigDecimal"/>
+            <arg column="view_count" javaType="long"/>
+            <arg column="chat_cnt" javaType="long"/>
+            <arg column="first_image" javaType="String"/>
+            <arg column="updated_at" javaType="java.time.Instant"/>
+        </constructor>
+    </resultMap>
+
+    <select id="findNearbyListings" resultMap="ListingResponseMap">
+        SELECT
+        l.listing_id,
+        l.seller_id,
+        l.title,
+        l.category_id,
+        l.price,
+        l.is_free,
+        l.status,
+        r.dongnm,
+        l.hope_region_id,
+        l.hope_lat,
+        l.hope_lng,
+        l.view_count,
+        0 as chat_cnt,
+        li.image_url as first_image,
+        l.updated_at
+        FROM listing l
+        left join listing_image li on l.listing_id=li.listing_id
+        join region r on r.id=l.region_id
+        WHERE ST_DWithin(
+        r.geom::geography,
+        (SELECT geom::geography FROM region WHERE id = #{regionId}),
+        7000
+        )
+        <if test="lastListingId != null">
+            AND l.listing_id &lt; #{lastListingId}
+        </if>
+        AND l.is_hidden IS FALSE
+        AND (li.sort_order = 0 OR li.sort_order IS NULL)
+        AND l.status != 'DRAFT'
+        ORDER BY l.listing_id DESC
+        LIMIT #{size}
+    </select>
+
+</mapper>
+

@@ -72,27 +72,6 @@ class MemberControllerTest {
     }
 
     @Test
-    void signupReturnsCreated() throws Exception {
-        when(memberCommandService.signup(any(MemberSignupCommand.class))).thenReturn(100L);
-
-        mockMvc.perform(post("/api/members")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nickname": "alice",
-                                  "phoneNumber": "01012345678"
-                                }
-                                """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.memberId").value(100L));
-
-        ArgumentCaptor<MemberSignupCommand> captor = ArgumentCaptor.forClass(MemberSignupCommand.class);
-        verify(memberCommandService).signup(captor.capture());
-        assertThat(captor.getValue().nickname()).isEqualTo("alice");
-        assertThat(captor.getValue().phoneNumber()).isEqualTo("01012345678");
-    }
-
-    @Test
     void meReturnsMemberResponse() throws Exception {
         when(memberQueryService.getMe(1L)).thenReturn(new MemberResponse("nick", "img.png", 365));
 

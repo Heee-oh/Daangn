@@ -28,9 +28,13 @@ logging:
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
-  type-aliases-package: com.daangn.market.dto, com.daangn.market.domain
+  type-aliases-package: com.daangn.market.Listing.application.dto, com.daangn.market.member
   configuration:
     map-underscore-to-camel-case: true
     cache-enabled: false
+
+jwt:
+  secret: seg$#%3452FGFRdsrgd@#$44ZA4343Fh45346
+  access-token-validity-seconds: 360024100
 
 

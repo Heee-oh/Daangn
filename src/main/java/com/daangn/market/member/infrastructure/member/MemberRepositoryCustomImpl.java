@@ -4,6 +4,7 @@ import com.daangn.market.member.application.dto.MemberRegionResponse;
 import com.daangn.market.member.application.dto.MemberResponse;
 import com.daangn.market.member.application.dto.QMemberRegionResponse;
 import com.daangn.market.member.application.dto.QMemberResponse;
+import com.daangn.market.member.domain.MemberStatus;
 import com.daangn.market.member.domain.QMember;
 import com.daangn.market.member.domain.QMemberRegion;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -31,7 +32,8 @@ public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
                         qMember.mannerTemp
                 ))
                 .from(qMember)
-                .where(qMember.id.eq(memberId))
+                .where(qMember.id.eq(memberId),
+                        qMember.status.eq(MemberStatus.ACTIVE))
                 .fetchOne();
 
         if (result == null) {

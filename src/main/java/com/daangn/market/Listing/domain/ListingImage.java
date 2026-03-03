@@ -1,5 +1,6 @@
 package com.daangn.market.Listing.domain;
 
+import com.daangn.market.Listing.exception.ListingBadRequestException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,20 +40,27 @@ public class ListingImage {
     }
 
     protected ListingImage(int sortOrder, String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new ListingBadRequestException("Invalid imageUrl");
+        }
         this.sortOrder = sortOrder;
         this.imageUrl = imageUrl;
     }
 
+    public static ListingImage of(String imageUrl) {
+        return new ListingImage(0, imageUrl);
+    }
+
     public void updateSortOrder(int sortOrder) {
         if (sortOrder < 0) {
-            throw new IllegalArgumentException("sortOrder cannot be negative");
+            throw new ListingBadRequestException("sortOrder cannot be negative");
         }
         this.sortOrder = sortOrder;
     }
 
     public void updateImageUrl(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) {
-            throw new IllegalArgumentException("Invalid imageUrl");
+            throw new ListingBadRequestException("Invalid imageUrl");
         }
 
         this.imageUrl = imageUrl;

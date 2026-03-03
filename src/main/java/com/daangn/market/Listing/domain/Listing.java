@@ -1,5 +1,7 @@
 package com.daangn.market.Listing.domain;
 
+import com.daangn.market.Listing.exception.ListingBadRequestException;
+import com.daangn.market.Listing.exception.ListingConflictException;
 import com.daangn.market.common.domain.BaseTimeEntity;
 import com.github.f4b6a3.tsid.TsidCreator;
 import jakarta.persistence.*;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,7 +24,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Listing extends BaseTimeEntity {
 
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "listing_id")
     private Long id;
 
@@ -42,6 +45,9 @@ public class Listing extends BaseTimeEntity {
 
     @Column(name = "category_id")
     private Long categoryId;
+
+    @Column(name = "region_id")
+    private Integer regionId;
 
     @Embedded
     private HopeLocation hopeLocation;
@@ -65,18 +71,60 @@ public class Listing extends BaseTimeEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    @PrePersist
-    protected void init() {
-        if (id == null) {
-            id = TsidCreator.getTsid().toLong();
-        }
-    }
+
 
     public static Listing draft() {
         Listing l = new Listing();
         l.status = Status.DRAFT;
         l.isHidden = false;
         return l;
+    }
+
+    public static Listing createEmptyDraft(Long sellerId, Integer regionId) {
+        Listing listing = draft();
+        listing.regionId = regionId;
+
+        if (sellerId == null || sellerId <= 0) {
+            throw new ListingBadRequestException("Invalid seller id");
+        }
+
+        listing.sellerId = sellerId;
+        listing.title = "Draft";
+        listing.price = new Price(null, true);
+        return listing;
+    }
+
+    public static Listing createDraft(
+            Long sellerId,
+            String title,
+            String description,
+            Long categoryId,
+            Long priceAmount,
+            boolean isFree,
+            HopeLocation hopeLocation,
+            List<ListingImage> listingImages
+    ) {
+        Listing listing = draft();
+
+        if (sellerId == null || sellerId <= 0) {
+            throw new ListingBadRequestException("Invalid seller id");
+        }
+        if (title == null || title.isBlank() || title.length() > 200) {
+            throw new ListingBadRequestException("Title must be 1 to 200 characters");
+        }
+
+        listing.sellerId = sellerId;
+        listing.title = title;
+        listing.description = description;
+        listing.categoryId = categoryId;
+        listing.updatePrice(priceAmount, isFree);
+        listing.hopeLocation = hopeLocation;
+
+        if (listingImages != null && !listingImages.isEmpty()) {
+            listing.addImages(listingImages);
+        }
+
+        return listing;
     }
 
     public static Listing draftPrice(Long amount, boolean isFree) {
@@ -90,10 +138,10 @@ public class Listing extends BaseTimeEntity {
 
     public void publish() {
         if (isDeleted()) {
-            throw new IllegalStateException("Deleted listing");
+            throw new ListingConflictException("Deleted listing");
         }
         if (status != Status.DRAFT) {
-            throw new IllegalStateException("Publish failed");
+            throw new ListingConflictException("Publish failed");
         }
 
         status = Status.PUBLISHED;
@@ -101,10 +149,10 @@ public class Listing extends BaseTimeEntity {
 
     public void hide() {
         if (isDeleted()) {
-            throw new IllegalStateException("Deleted listing");
+            throw new ListingConflictException("Deleted listing");
         }
         if (status == Status.DRAFT) {
-            throw new IllegalStateException("Draft cannot be hidden");
+            throw new ListingConflictException("Draft cannot be hidden");
         }
 
         isHidden = true;
@@ -112,13 +160,13 @@ public class Listing extends BaseTimeEntity {
 
     public void unHide() {
         if (isDeleted()) {
-            throw new IllegalStateException("Deleted listing");
+            throw new ListingConflictException("Deleted listing");
         }
         if (!isHidden) {
-            throw new IllegalStateException("Already visible");
+            throw new ListingConflictException("Already visible");
         }
         if (status == Status.DRAFT) {
-            throw new IllegalStateException("Draft state");
+            throw new ListingConflictException("Draft state");
         }
 
         isHidden = false;
@@ -126,16 +174,16 @@ public class Listing extends BaseTimeEntity {
 
     public void reserve(Long reservedId) {
         if (reservedId == null) {
-            throw new IllegalArgumentException("Invalid buyer id");
+            throw new ListingBadRequestException("Invalid buyer id");
         }
         if (isDeleted()) {
-            throw new IllegalStateException("Deleted listing");
+            throw new ListingConflictException("Deleted listing");
         }
         if (isHidden) {
-            throw new IllegalStateException("Hidden state");
+            throw new ListingConflictException("Hidden state");
         }
         if (status != Status.PUBLISHED) {
-            throw new IllegalStateException("Cannot reserve in current status");
+            throw new ListingConflictException("Cannot reserve in current status");
         }
 
         this.reserverId = reservedId;
@@ -144,10 +192,10 @@ public class Listing extends BaseTimeEntity {
 
     public void cancelReserve() {
         if (isDeleted()) {
-            throw new IllegalStateException("Deleted listing");
+            throw new ListingConflictException("Deleted listing");
         }
         if (status != Status.RESERVED) {
-            throw new IllegalStateException("Not reserved state");
+            throw new ListingConflictException("Not reserved state");
         }
 
         status = Status.PUBLISHED;
@@ -156,13 +204,13 @@ public class Listing extends BaseTimeEntity {
 
     public void markSoldOut(Long buyerId) {
         if (isDeleted()) {
-            throw new IllegalStateException("Deleted listing");
+            throw new ListingConflictException("Deleted listing");
         }
         if (status != Status.RESERVED) {
-            throw new IllegalStateException("Not reserved state");
+            throw new ListingConflictException("Not reserved state");
         }
         if (!this.reserverId.equals(buyerId)) {
-            throw new IllegalArgumentException("Invalid buyer id");
+            throw new ListingBadRequestException("Invalid buyer id");
         }
 
         status = Status.SOLD_OUT;
@@ -171,10 +219,10 @@ public class Listing extends BaseTimeEntity {
 
     public void remove() {
         if (isDeleted()) {
-            throw new IllegalStateException("Already deleted");
+            throw new ListingConflictException("Already deleted");
         }
         if (status != Status.DRAFT && status != Status.PUBLISHED) {
-            throw new IllegalStateException("Delete precondition failed");
+            throw new ListingConflictException("Delete precondition failed");
         }
 
         deletedAt = Instant.now();
@@ -184,7 +232,7 @@ public class Listing extends BaseTimeEntity {
         ensureEditable();
 
         if (!isFree && (nPrice == null || nPrice <= 0)) {
-            throw new IllegalArgumentException("Invalid price");
+            throw new ListingBadRequestException("Invalid price");
         }
         this.price = new Price(nPrice, isFree);
     }
@@ -192,13 +240,15 @@ public class Listing extends BaseTimeEntity {
     public void updateTitleAndDescription(String title, String description) {
         ensureEditable();
 
-        if (title != null) {
-            this.title = title;
+        if (title == null || title.isBlank() || title.length() > 200) {
+            throw new ListingBadRequestException("Title must be 1 to 200 characters");
         }
+        this.title = title;
 
-        if (description != null) {
-            this.description = description;
+        if (description == null) {
+            throw new ListingBadRequestException("Description is required");
         }
+        this.description = description;
     }
 
     public void updateHopeLocation(HopeLocation newHopeLocation) {
@@ -208,6 +258,10 @@ public class Listing extends BaseTimeEntity {
 
     public void updateCategory(Long categoryId) {
         ensureEditable();
+
+        if (categoryId == null || categoryId <= 0) {
+            throw new ListingBadRequestException("Invalid category id");
+        }
         this.categoryId = categoryId;
     }
 
@@ -230,7 +284,7 @@ public class Listing extends BaseTimeEntity {
         });
 
         if (!removed) {
-            throw new EntityNotFoundException("Image not found");
+            throw new ListingBadRequestException("Image not found");
         }
 
         reorderImages();
@@ -253,7 +307,7 @@ public class Listing extends BaseTimeEntity {
         ensureEditable();
 
         if (orderedImageIds.size() != images.size()) {
-            throw new IllegalArgumentException("Image count mismatch");
+            throw new ListingBadRequestException("Image count mismatch");
         }
 
         Map<Long, ListingImage> map = images.stream()
@@ -262,7 +316,7 @@ public class Listing extends BaseTimeEntity {
         for (int i = 0; i < orderedImageIds.size(); i++) {
             ListingImage img = map.get(orderedImageIds.get(i));
             if (img == null) {
-                throw new EntityNotFoundException("Image not found");
+                throw new ListingBadRequestException("Image not found");
             }
             img.updateSortOrder(i);
         }
@@ -282,14 +336,18 @@ public class Listing extends BaseTimeEntity {
 
     private void ensureEditable() {
         if (isDeleted()) {
-            throw new IllegalStateException("Deleted listing");
+            throw new ListingConflictException("Deleted listing");
         }
         if (status != Status.DRAFT && status != Status.PUBLISHED) {
-            throw new IllegalStateException("Cannot edit in current state");
+            throw new ListingConflictException("Cannot edit in current state");
         }
     }
 
     private boolean isDeleted() {
         return deletedAt != null;
+    }
+
+    public boolean isOwnedBy(Long memberId) {
+        return Objects.equals(sellerId, memberId);
     }
 }

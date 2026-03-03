@@ -27,14 +27,6 @@ public class MemberController {
     private final MemberCommandService memberCommandService;
     private final MemberQueryService memberQueryService;
 
-    @PostMapping
-    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        Long memberId = memberCommandService.signup(new MemberSignupCommand(request.nickname(), request.phoneNumber()));
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("memberId", memberId));
-    }
-
     @GetMapping("/me/regions")
     public ResponseEntity<?> myRegion(@AuthenticationPrincipal AuthPrincipal principal) {
         List<MemberRegionResponse> myRegions = memberQueryService.getMyRegions(principal.memberId());
@@ -71,18 +63,18 @@ public class MemberController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/me/interests/{listingId}")
+    @PutMapping("/me/interests/{listing_id}")
     public ResponseEntity<?> addInterest(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId) {
+            @PathVariable("listing_id") Long listingId) {
         memberCommandService.addInterest(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/me/interests/{listingId}")
+    @DeleteMapping("/me/interests/{listing_id}")
     public ResponseEntity<?> deleteInterest(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @PathVariable Long listingId) {
+            @PathVariable("listing_id") Long listingId) {
         memberCommandService.deleteInterest(principal.memberId(), listingId);
         return ResponseEntity.noContent().build();
     }

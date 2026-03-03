@@ -9,6 +9,8 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Repository
 @Transactional
 @RequiredArgsConstructor
@@ -18,7 +20,7 @@ public class RegionJpaRepositoryCustomImpl implements RegionJpaRepositoryCustom 
 
     private static final QRegion region = QRegion.region;
     @Override
-    public boolean validateCoordinateInRegionQD(Integer regionId, double lat, double lng) {
+    public boolean validateCoordinateInRegionQD(Integer regionId, BigDecimal lat, BigDecimal lng) {
 
         Point point = GeometryUtil.createPoint(lng, lat);
 

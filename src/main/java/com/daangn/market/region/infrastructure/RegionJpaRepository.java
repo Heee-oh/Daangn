@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Repository
 @Transactional
 public interface RegionJpaRepository extends JpaRepository<Region, Long>, RegionJpaRepositoryCustom {
@@ -19,9 +21,9 @@ public interface RegionJpaRepository extends JpaRepository<Region, Long>, Region
                 LIMIT 1
             """
             , nativeQuery = true)
-    Integer covers(Integer regionId, double lat, double lng);
+    Integer covers(Integer regionId, BigDecimal lat, BigDecimal lng);
 
-    default boolean validateCoordinateInRegion(Integer regionId, double lat, double lng) {
+    default boolean validateCoordinateInRegion(Integer regionId, BigDecimal lat, BigDecimal lng) {
         return covers(regionId, lat, lng) != null;
     }
 }

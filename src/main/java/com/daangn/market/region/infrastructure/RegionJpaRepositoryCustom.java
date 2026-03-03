@@ -1,5 +1,7 @@
 package com.daangn.market.region.infrastructure;
 
+import java.math.BigDecimal;
+
 public interface RegionJpaRepositoryCustom {
 
     /**
@@ -10,5 +12,5 @@ public interface RegionJpaRepositoryCustom {
      * @param lng
      * @return
      */
-    boolean validateCoordinateInRegionQD(Integer regionId, double lat, double lng);
+    boolean validateCoordinateInRegionQD(Integer regionId, BigDecimal lat, BigDecimal lng);
 }

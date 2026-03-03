@@ -1,5 +1,6 @@
 package com.daangn.market.Listing.domain;
 
+import com.daangn.market.Listing.exception.ListingBadRequestException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -27,19 +28,15 @@ public class HopeLocation {
     @Column(name = "hope_lng", precision = 10, scale = 7)
     private BigDecimal lng;
 
-    public HopeLocation(Integer regionId, double lat, double lng) {
-        this(regionId, BigDecimal.valueOf(lat), BigDecimal.valueOf(lng));
-    }
-
     public HopeLocation(Integer regionId, BigDecimal lat, BigDecimal lng) {
         if (regionId == null) {
-            throw new IllegalArgumentException("regionId is required");
+            throw new ListingBadRequestException("regionId is required");
         }
         if (lat == null || lat.compareTo(MIN_LAT) < 0 || lat.compareTo(MAX_LAT) > 0) {
-            throw new IllegalArgumentException("latitude out of range");
+            throw new ListingBadRequestException("latitude out of range");
         }
         if (lng == null || lng.compareTo(MIN_LNG) < 0 || lng.compareTo(MAX_LNG) > 0) {
-            throw new IllegalArgumentException("longitude out of range");
+            throw new ListingBadRequestException("longitude out of range");
         }
 
         this.regionId = regionId;
