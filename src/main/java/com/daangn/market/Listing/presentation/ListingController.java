@@ -30,14 +30,11 @@ public class ListingController {
     public ResponseEntity<?> getListings(
             @AuthenticationPrincipal AuthPrincipal principal,
             @RequestParam(name = "region_id", required = false) Integer regionId,
-            @RequestParam(name = "last_listing_id", required = false) Long snakeLastListingId,
-            @RequestParam(name = "lastListingId", required = false) Long camelLastListingId
+            @RequestParam(name = "last_listing_id", required = false) Long lastListingId
     ) {
         if (regionId == null) {
             throw new ListingBadRequestException("region_id is required");
         }
-
-        Long lastListingId = snakeLastListingId != null ? snakeLastListingId : camelLastListingId;
         long cursor = lastListingId == null ? Long.MAX_VALUE : lastListingId;
         return ResponseEntity.ok(listingQueryService.getListings(principal.memberId(), regionId, cursor));
     }

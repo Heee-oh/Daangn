@@ -36,5 +36,3 @@ mybatis:
 jwt:
   secret: seg$#%3452FGFRdsrgd@#$44ZA4343Fh45346
   access-token-validity-seconds: 360024100
-
-

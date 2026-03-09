@@ -1,5 +1,6 @@
 package com.daangn.market.chat.domain;
 
+import com.daangn.market.common.domain.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import java.time.Instant;
 @Getter
 @Table(name = "chat_room")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatRoom {
+public class ChatRoom extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,9 +32,19 @@ public class ChatRoom {
     @Column(length = 20, nullable = false)
     private ChatRoomStatus status;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    public static ChatRoom create(Long listingId, Long sellerId, Long buyerId) {
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.listingId = listingId;
+        chatRoom.sellerId = sellerId;
+        chatRoom.buyerId = buyerId;
+        chatRoom.status = ChatRoomStatus.ACTIVE;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+        return chatRoom;
+    }
+
+    public boolean isParticipant(Long memberId) {
+        return buyerId.equals(memberId) || sellerId.equals(memberId);
+    }
+
+
 }
