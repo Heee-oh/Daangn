@@ -29,12 +29,10 @@ public class ListingController {
     @GetMapping()
     public ResponseEntity<?> getListings(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @RequestParam(name = "region_id", required = false) Integer snakeRegionId,
-            @RequestParam(name = "regionId", required = false) Integer camelRegionId,
+            @RequestParam(name = "region_id", required = false) Integer regionId,
             @RequestParam(name = "last_listing_id", required = false) Long snakeLastListingId,
             @RequestParam(name = "lastListingId", required = false) Long camelLastListingId
     ) {
-        Integer regionId = snakeRegionId != null ? snakeRegionId : camelRegionId;
         if (regionId == null) {
             throw new ListingBadRequestException("region_id is required");
         }

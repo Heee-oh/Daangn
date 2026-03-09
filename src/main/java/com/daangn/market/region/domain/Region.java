@@ -15,6 +15,7 @@ import org.locationtech.jts.geom.MultiPolygon;
 public class Region {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 

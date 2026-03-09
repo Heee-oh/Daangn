@@ -52,12 +52,12 @@ public class ListingJpaRepositoryCustomImpl implements ListingJpaRepositoryCusto
         // 반경 7~10km 주의의 행정동을 뽑고,
         // 해당 행정동의 게시글들을 조회
 
-        // 행정동의 7KM 반경의 행정동 판별
+        // 행정동의 3KM 반경의 행정동 판별
         BooleanExpression isWithin7Km = Expressions.booleanTemplate(
                 "function('ST_DWithin', {0}, {1}, {2}) = true",
                 region.geom,
                 base.geom,
-                7000.0d
+                3000.0d
         );
 
         List<ListingResponse> fetch
