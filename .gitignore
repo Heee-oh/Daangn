@@ -38,3 +38,7 @@ out/
 
 postgres_data/
 /build
+
+frontend/
+/frontend/
+

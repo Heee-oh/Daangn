@@ -6,11 +6,13 @@ import com.daangn.market.common.auth.presentation.dto.request.AuthLoginRequest;
 import com.daangn.market.common.auth.presentation.dto.request.AuthSignupRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Slf4j
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
@@ -25,7 +27,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenResponse> login(@Valid @RequestBody AuthLoginRequest request) {
-        return ResponseEntity.ok(authService.login(request.toCommand()));
+        AuthTokenResponse login = authService.login(request.toCommand());
+        return ResponseEntity.ok(login);
     }
 }
 

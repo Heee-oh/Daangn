@@ -3,6 +3,7 @@ package com.daangn.market.member.domain;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Column;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.regex.Pattern;

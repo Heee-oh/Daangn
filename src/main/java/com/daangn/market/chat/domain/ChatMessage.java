@@ -35,8 +35,9 @@ public class ChatMessage {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    public static ChatMessage create(Long senderId, MessageType type, String content) {
+    public static ChatMessage create(Long senderId, Long chatRoomId, MessageType type, String content) {
         ChatMessage chatMessage = new ChatMessage();
+        chatMessage.chatRoomId = chatRoomId;
         chatMessage.senderId = senderId;
         chatMessage.type = type;
         chatMessage.content = content;

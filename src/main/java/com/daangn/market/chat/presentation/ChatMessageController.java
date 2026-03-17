@@ -6,13 +6,17 @@ import com.daangn.market.chat.presentation.dto.ChatMessageRequest;
 import com.daangn.market.chat.presentation.dto.ChatMessageResponse;
 import com.daangn.market.common.auth.AuthPrincipal;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
+
 @Controller
+@Slf4j
 @RequiredArgsConstructor
 public class ChatMessageController {
 
@@ -25,10 +29,13 @@ public class ChatMessageController {
      */
     @MessageMapping("/chat/message")
     public void sendMessage(@Payload ChatMessageRequest request,
-                            @AuthenticationPrincipal AuthPrincipal principal) { // payload : @RequestBody 처럼 JSON -> DTO 객체로 변환
+                            Principal principal) { // payload : @RequestBody 처럼 JSON -> DTO 객체로 변환
+
+        UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) principal;
+        AuthPrincipal authPrincipal = (AuthPrincipal) auth.getPrincipal();
 
         // 1. 비즈니스 로직: 전달받은 메시지를 DB에 저장하고, 응답용 DTO로 변환
-        ChatMessageResponse response = chatMessageService.saveMessage(request, principal.memberId());
+        ChatMessageResponse response = chatMessageService.saveMessage(request, authPrincipal.memberId());
 
         // 2. 브로드캐스팅: 해당 채팅방을 구독(Subscribe)하고 있는 모든 클라이언트에게 메시지 전송
         // 목적지 URL: /sub/chat/room/{chatRoomId}

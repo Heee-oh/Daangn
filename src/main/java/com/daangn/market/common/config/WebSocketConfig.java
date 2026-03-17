@@ -1,14 +1,22 @@
 package com.daangn.market.common.config;
 
+import com.daangn.market.common.JwtStompChannelInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
+@RequiredArgsConstructor
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final JwtStompChannelInterceptor jwtStompChannelInterceptor;
+
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // 1. 클라이언트가 웹소켓 연결을 시작할 '입구(Endpoint)' 설정
@@ -26,5 +34,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 3. 메시지를 발송(Publish)하는 요청의 접두사 (우체부 역할)
         // 클라이언트가 메시지를 보낼 때 라우팅될 Prefix를 지정
         registry.setApplicationDestinationPrefixes("/pub");
+    }
+
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(jwtStompChannelInterceptor);
     }
 }

@@ -10,9 +10,11 @@ import com.daangn.market.chat.infrastructure.ChatRoomRepository;
 import com.daangn.market.chat.presentation.dto.ChatMessageRequest;
 import com.daangn.market.chat.presentation.dto.ChatMessageResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ChatMessageService {
 
@@ -28,6 +30,8 @@ public class ChatMessageService {
 
         // 해당 방에 참여자인지 검증
         if (!chatRoom.isParticipant(senderId)) {
+            log.info("parti == {} {}", chatRoom.getBuyerId(), chatRoom.getSellerId() );
+            log.info("sender = {}", senderId);
             throw new IllegalArgumentException("채팅방 참여자가 아닙니다.");
         }
 
@@ -36,7 +40,7 @@ public class ChatMessageService {
         }
 
         // 메시지 저장
-        ChatMessage message = ChatMessage.create(senderId, request.type(), request.content());
+        ChatMessage message = ChatMessage.create(senderId,request.chatRoomId(), request.type(), request.content());
         ChatMessage saved = chatMessageRepository.save(message);
 
         // 발신자 read 상태 조회

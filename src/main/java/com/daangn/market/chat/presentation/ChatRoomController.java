@@ -17,10 +17,11 @@ public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
 
+    /**
+     *  채팅방 id 값을 획득하거나 생성
+     */
     @PostMapping
-    public ResponseEntity<ChatRoomCreateResponse> getOrCreateChatRoom(
-            @RequestBody ChatRoomCreateRequest request
-    ) {
+    public ResponseEntity<ChatRoomCreateResponse> getOrCreateChatRoom(@RequestBody ChatRoomCreateRequest request) {
         Long chatRoomId = chatRoomService.getOrCreateChatRoom(
                 request.listingId(),
                 request.sellerId(),

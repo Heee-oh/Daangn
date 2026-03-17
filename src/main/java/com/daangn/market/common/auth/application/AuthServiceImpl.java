@@ -11,12 +11,14 @@ import com.daangn.market.member.domain.Member;
 import com.daangn.market.member.domain.PhoneNumber;
 import com.daangn.market.member.infrastructure.member.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
+@Slf4j
 @Transactional
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -36,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
         Member savedMember = memberJpaRepository.save(member);
         String accessToken = jwtTokenProvider.createAccessToken(savedMember.getId());
 
-        return new AuthTokenResponse(savedMember.getId(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
+        return new AuthTokenResponse(savedMember.getId().toString(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
     }
 
     @Override
@@ -46,9 +48,8 @@ public class AuthServiceImpl implements AuthService {
 
         Member member = memberJpaRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new AuthUnauthorizedException("Member not found for this phone number"));
-
         String accessToken = jwtTokenProvider.createAccessToken(member.getId());
-        return new AuthTokenResponse(member.getId(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
+        return new AuthTokenResponse(member.getId().toString(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
     }
 
     private PhoneNumber parsePhoneNumber(String rawPhoneNumber) {
