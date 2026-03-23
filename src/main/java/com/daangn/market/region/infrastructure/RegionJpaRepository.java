@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Repository
 @Transactional
@@ -26,4 +27,32 @@ public interface RegionJpaRepository extends JpaRepository<Region, Long>, Region
     default boolean validateCoordinateInRegion(Integer regionId, BigDecimal lat, BigDecimal lng) {
         return covers(regionId, lat, lng) != null;
     }
+
+    @Query(
+            value = """
+                SELECT *
+                FROM region r
+                WHERE :keyword = ''
+                   OR r.adm_nm LIKE CONCAT('%', :keyword, '%')
+                   OR r.dongnm LIKE CONCAT('%', :keyword, '%')
+                ORDER BY r.sidonm, r.sggnm, r.dongnm
+                LIMIT 20
+            """,
+            nativeQuery = true
+    )
+    List<Region> searchByKeyword(String keyword);
+
+    @Query(
+            value = """
+                SELECT *
+                FROM region r
+                ORDER BY ST_Distance(
+                    r.geom::geometry,
+                    ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geometry
+                ) ASC
+                LIMIT 20
+            """,
+            nativeQuery = true
+    )
+    List<Region> findNearby(BigDecimal lat, BigDecimal lng);
 }

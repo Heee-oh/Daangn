@@ -44,7 +44,7 @@ class AuthControllerTest {
     @Test
     void signupReturnsCreatedToken() throws Exception {
         when(authService.signup(any(AuthSignupCommand.class)))
-                .thenReturn(new AuthTokenResponse(1L, "token-1", 3600L));
+                .thenReturn(new AuthTokenResponse("1", "token-1", 3600L));
 
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +66,7 @@ class AuthControllerTest {
     @Test
     void loginReturnsToken() throws Exception {
         when(authService.login(any(AuthLoginCommand.class)))
-                .thenReturn(new AuthTokenResponse(1L, "token-1", 3600L));
+                .thenReturn(new AuthTokenResponse("1", "token-1", 3600L));
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

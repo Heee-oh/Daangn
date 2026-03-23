@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login", "/api/members").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/regions/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/ws-chat/**").permitAll()

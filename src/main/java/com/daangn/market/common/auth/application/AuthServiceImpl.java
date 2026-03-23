@@ -8,6 +8,7 @@ import com.daangn.market.common.auth.exception.AuthConflictException;
 import com.daangn.market.common.auth.exception.AuthUnauthorizedException;
 import com.daangn.market.common.auth.jwt.JwtTokenProvider;
 import com.daangn.market.member.domain.Member;
+import com.daangn.market.member.domain.MemberRegion;
 import com.daangn.market.member.domain.PhoneNumber;
 import com.daangn.market.member.infrastructure.member.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,9 @@ public class AuthServiceImpl implements AuthService {
 
         String nickname = resolveNickname(command.nickname(), command.phoneNumber());
         Member member = new Member(nickname, phoneNumber);
+        if (command.regionId() != null) {
+            member.addRegion(new MemberRegion(command.regionId(), true));
+        }
         Member savedMember = memberJpaRepository.save(member);
         String accessToken = jwtTokenProvider.createAccessToken(savedMember.getId());
 

@@ -92,7 +92,7 @@ public class ListingJpaRepositoryCustomImpl implements ListingJpaRepositoryCusto
                         listing.isHidden.isFalse(),
                         listing.status.ne(Status.DRAFT)
                 )
-                .orderBy(listing.id.desc())
+                .orderBy(listing.updatedAt.desc())
                 .limit(size + 1)
                 .fetch();
 

@@ -1,7 +1,6 @@
 package com.daangn.market.chat.presentation;
 
 import com.daangn.market.chat.application.ChatMessageService;
-import com.daangn.market.chat.application.ChatRoomService;
 import com.daangn.market.chat.presentation.dto.ChatMessageRequest;
 import com.daangn.market.chat.presentation.dto.ChatMessageResponse;
 import com.daangn.market.common.auth.AuthPrincipal;

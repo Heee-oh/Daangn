@@ -5,10 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 
 public record AuthSignupRequest(
         @NotBlank String phoneNumber,
-        String nickname
+        String nickname,
+        Integer regionId
 ) {
     public AuthSignupCommand toCommand() {
-        return new AuthSignupCommand(phoneNumber, nickname);
+        return new AuthSignupCommand(phoneNumber, nickname, regionId);
     }
 }
 

@@ -41,8 +41,12 @@
         li.image_url as first_image,
         l.updated_at
         FROM listing l
-        left join listing_image li on l.listing_id=li.listing_id
-        join region r on r.id=l.region_id
+        JOIN region r ON r.id=l.region_id
+        LEFT JOIN listing_image li
+            ON l.listing_id=li.listing_id
+                AND li.sort_order = 0
+
+
         WHERE ST_DWithin(
         r.geom::geography,
         (SELECT geom::geography FROM region WHERE id = #{regionId}),
@@ -52,7 +56,6 @@
             AND l.listing_id &lt; #{lastListingId}
         </if>
         AND l.is_hidden IS FALSE
-        AND (li.sort_order = 0 OR li.sort_order IS NULL)
         AND l.status != 'DRAFT'
         ORDER BY l.listing_id DESC
         LIMIT #{size}
