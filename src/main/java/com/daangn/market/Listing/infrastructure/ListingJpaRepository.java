@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,6 +24,10 @@ public interface ListingJpaRepository extends JpaRepository<Listing, Long>, List
     @Query("SELECT l FROM Listing l WHERE l.id = :listingId AND l.deletedAt IS NULL")
     Optional<Listing> findActiveByIdWithImages(@Param("listingId") Long listingId);
 
+    @Transactional(readOnly = true)
+    @EntityGraph(attributePaths = "images")
+    @Query("SELECT l FROM Listing l WHERE l.id IN :listingIds AND l.deletedAt IS NULL")
+    List<Listing> findActiveByIdInWithImages(@Param("listingIds") Collection<Long> listingIds);
 
 }
 

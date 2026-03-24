@@ -2,6 +2,7 @@ package com.daangn.market.member.presentation;
 
 import com.daangn.market.common.auth.AuthPrincipal;
 import com.daangn.market.member.application.MemberRegionCommandService;
+import com.daangn.market.member.presentation.dto.request.MemberRegionAddRequest;
 import com.daangn.market.member.presentation.dto.request.MemberRegionVerifyRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberRegionController {
 
     private final MemberRegionCommandService memberRegionCommandService;
+
+    @PostMapping
+    public ResponseEntity<Void> add(
+            @AuthenticationPrincipal AuthPrincipal principal,
+            @Valid @RequestBody MemberRegionAddRequest request
+    ) {
+        memberRegionCommandService.addMemberRegion(request.regionId(), principal.memberId());
+        return ResponseEntity.noContent().build();
+    }
 
     @PostMapping("/{region_id}/verify")
     public ResponseEntity<Void> verify(

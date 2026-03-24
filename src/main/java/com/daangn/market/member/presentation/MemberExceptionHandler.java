@@ -1,17 +1,28 @@
 package com.daangn.market.member.presentation;
 
+import com.daangn.market.member.domain.exception.memberRegion.MemberRegionAlreadyExistsException;
+import com.daangn.market.member.domain.exception.memberRegion.MemberRegionLimitExceededException;
 import com.daangn.market.member.domain.exception.memberRegion.MemberRegionNotFoundException;
 import com.daangn.market.member.domain.exception.memberRegion.MemberRegionVerificationFailedException;
+import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
-
 @RestControllerAdvice(basePackages = "com.daangn.market.member")
 public class MemberExceptionHandler {
+
+    @ExceptionHandler(MemberRegionAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorResponse> handleRegionAlreadyExists(MemberRegionAlreadyExistsException e) {
+        return error(HttpStatus.BAD_REQUEST, "MEMBER_REGION_ALREADY_EXISTS", e.getMessage());
+    }
+
+    @ExceptionHandler(MemberRegionLimitExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleRegionLimitExceeded(MemberRegionLimitExceededException e) {
+        return error(HttpStatus.BAD_REQUEST, "MEMBER_REGION_LIMIT_EXCEEDED", e.getMessage());
+    }
 
     @ExceptionHandler(MemberRegionNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleRegionNotFound(MemberRegionNotFoundException e) {

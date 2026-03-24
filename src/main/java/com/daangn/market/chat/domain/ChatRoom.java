@@ -46,5 +46,8 @@ public class ChatRoom extends BaseTimeEntity {
         return buyerId.equals(memberId) || sellerId.equals(memberId);
     }
 
+    public void syncSellerId(Long sellerId) {
+        this.sellerId = sellerId;
+    }
 
 }

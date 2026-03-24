@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 @Transactional
-public interface RegionJpaRepository extends JpaRepository<Region, Long>, RegionJpaRepositoryCustom {
+public interface RegionJpaRepository extends JpaRepository<Region, Integer>, RegionJpaRepositoryCustom {
 
     @Query(value =
             """
