@@ -3,6 +3,7 @@ package com.daangn.market.Listing.infrastructure;
 import com.daangn.market.Listing.domain.Listing;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -28,6 +29,15 @@ public interface ListingJpaRepository extends JpaRepository<Listing, Long>, List
     @EntityGraph(attributePaths = "images")
     @Query("SELECT l FROM Listing l WHERE l.id IN :listingIds AND l.deletedAt IS NULL")
     List<Listing> findActiveByIdInWithImages(@Param("listingIds") Collection<Long> listingIds);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Listing l
+               SET l.isHidden = true
+             WHERE l.sellerId = :sellerId
+               AND l.deletedAt IS NULL
+            """)
+    int hideAllBySellerId(@Param("sellerId") Long sellerId);
 
 }
 

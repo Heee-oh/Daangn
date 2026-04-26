@@ -43,4 +43,9 @@ public class MemberQueryServiceImpl implements MemberQueryService {
         PageRequest pageRequest = PageRequest.of(0, size);
         return interestJpaRepository.findAllByMemberId(memberId, lastInterestId, pageRequest);
     }
+
+    @Override
+    public boolean isInterested(Long memberId, Long listingId) {
+        return interestJpaRepository.existsByListingIdAndMemberId(listingId, memberId);
+    }
 }

@@ -8,6 +8,10 @@ import com.daangn.market.Listing.exception.ListingAccessDeniedException;
 import com.daangn.market.Listing.exception.ListingBadRequestException;
 import com.daangn.market.Listing.exception.ListingNotFoundException;
 import com.daangn.market.Listing.infrastructure.ListingJpaRepository;
+import com.daangn.market.common.event.DomainEventPublisher;
+import com.daangn.market.common.event.events.ListingCreatedEvent;
+import com.daangn.market.common.event.events.ListingReservationCanceledEvent;
+import com.daangn.market.common.event.events.ListingSoldOutEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,7 @@ import java.util.List;
 public class ListingCommandServiceImpl implements ListingCommandService {
 
     private final ListingJpaRepository listingJpaRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     @Override
     public Long createDraft(Long sellerId, Integer regionId) {
@@ -53,6 +58,13 @@ public class ListingCommandServiceImpl implements ListingCommandService {
         Listing listing = findActive(listingId);
         validateOwnership(listing, sellerId);
         listing.publish();
+        // 게시글 등록 이벤트를 발행한다.
+        domainEventPublisher.publish(new ListingCreatedEvent(
+                listing.getId(),
+                listing.getSellerId(),
+                listing.getRegionId(),
+                listing.getTitle()
+        ));
     }
 
     /**
@@ -92,7 +104,13 @@ public class ListingCommandServiceImpl implements ListingCommandService {
     public void cancelReserve(Long sellerId, Long listingId) {
         Listing listing = findActive(listingId);
         validateOwnership(listing, sellerId);
+        Long reserverId = listing.getReserverId();
         listing.cancelReserve();
+        // 예약 취소 이벤트를 발행한다.
+        domainEventPublisher.publish(new ListingReservationCanceledEvent(
+                listing.getId(),
+                reserverId
+        ));
     }
 
     /**
@@ -103,6 +121,13 @@ public class ListingCommandServiceImpl implements ListingCommandService {
         Listing listing = findActive(listingId);
         validateOwnership(listing, sellerId);
         listing.markSoldOut(buyerId);
+        // 판매 완료 이벤트를 발행한다.
+        domainEventPublisher.publish(new ListingSoldOutEvent(
+                listing.getId(),
+                listing.getSellerId(),
+                listing.getBuyerId(),
+                listing.getPrice().getPriceAmount()
+        ));
     }
 
     /**

@@ -89,6 +89,14 @@ public class MemberController {
         return ResponseEntity.ok(memberQueryService.getMyInterests(principal.memberId(), cursor, size));
     }
 
+    @GetMapping("/me/interests/{listing_id}")
+    public ResponseEntity<?> interestStatus(
+            @AuthenticationPrincipal AuthPrincipal principal,
+            @PathVariable("listing_id") Long listingId) {
+        boolean interested = memberQueryService.isInterested(principal.memberId(), listingId);
+        return ResponseEntity.ok(Map.of("interested", interested));
+    }
+
     @DeleteMapping("/me")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal AuthPrincipal principal) {
         memberCommandService.withdraw(principal.memberId());

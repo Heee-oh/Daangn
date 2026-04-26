@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         Member savedMember = memberJpaRepository.save(member);
         String accessToken = jwtTokenProvider.createAccessToken(savedMember.getId());
 
-        return new AuthTokenResponse(savedMember.getId().toString(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
+        return new AuthTokenResponse(savedMember.getId(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
     }
 
     @Override
@@ -53,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
         Member member = memberJpaRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new AuthUnauthorizedException("Member not found for this phone number"));
         String accessToken = jwtTokenProvider.createAccessToken(member.getId());
-        return new AuthTokenResponse(member.getId().toString(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
+        return new AuthTokenResponse(member.getId(), accessToken, jwtTokenProvider.getAccessTokenValiditySeconds());
     }
 
     private PhoneNumber parsePhoneNumber(String rawPhoneNumber) {

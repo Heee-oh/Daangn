@@ -42,4 +42,17 @@ public class Trade {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    public static Trade complete(Long listingId, Long sellerId, Long buyerId, Long price) {
+        Trade trade = new Trade();
+        trade.listingId = listingId;
+        trade.sellerId = sellerId;
+        trade.buyerId = buyerId;
+        trade.price = price;
+        trade.status = TradeStatus.COMPLETED;
+        trade.completedAt = Instant.now();
+        trade.createdAt = Instant.now();
+        trade.updatedAt = trade.createdAt;
+        return trade;
+    }
 }

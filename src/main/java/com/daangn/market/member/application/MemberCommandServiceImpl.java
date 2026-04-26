@@ -1,5 +1,7 @@
 package com.daangn.market.member.application;
 
+import com.daangn.market.common.event.DomainEventPublisher;
+import com.daangn.market.common.event.events.MemberWithdrawnEvent;
 import com.daangn.market.member.application.dto.MemberSignupCommand;
 import com.daangn.market.member.application.dto.MemberUpdateCommand;
 import com.daangn.market.member.domain.Interest;
@@ -25,6 +27,7 @@ MemberCommandServiceImpl implements MemberCommandService {
 
     private final MemberJpaRepository memberJpaRepository;
     private final InterestJpaRepository interestJpaRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     @Override
     public Long signup(MemberSignupCommand command) {
@@ -87,6 +90,8 @@ MemberCommandServiceImpl implements MemberCommandService {
     public void withdraw(Long memberId) {
         Member member = findMemberById(memberId);
         member.withdraw();
+        // 회원 탈퇴 이벤트를 발행한다.
+        domainEventPublisher.publish(new MemberWithdrawnEvent(memberId));
     }
 
     private Member findMemberById(Long memberId) {

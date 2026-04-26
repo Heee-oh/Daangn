@@ -15,4 +15,6 @@ public interface MemberRegionJpaRepository extends JpaRepository<MemberRegion, L
     boolean existsByMember_IdAndRegionId(Long memberId, Integer regionId);
 
     long countByMember_Id(Long memberId);
+
+    void deleteByMember_Id(Long memberId);
 }

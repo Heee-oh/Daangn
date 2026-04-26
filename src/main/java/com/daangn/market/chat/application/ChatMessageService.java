@@ -1,5 +1,7 @@
 package com.daangn.market.chat.application;
 
+import com.daangn.market.common.event.DomainEventPublisher;
+import com.daangn.market.common.event.events.ChatMessageSentEvent;
 import com.daangn.market.chat.domain.ChatMessage;
 import com.daangn.market.chat.domain.ChatRead;
 import com.daangn.market.chat.domain.ChatRoom;
@@ -22,6 +24,7 @@ public class ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatReadRepository chatReadRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     public ChatMessageResponse saveMessage(ChatMessageRequest request, Long senderId) {
         // 채팅방 존재 여부 확인
@@ -51,6 +54,20 @@ public class ChatMessageService {
 
         // 읽음 표시
         senderRead.markAsRead(saved.getId());
+
+        Long otherMemberId = chatRoom.getBuyerId().equals(senderId)
+                ? chatRoom.getSellerId()
+                : chatRoom.getBuyerId();
+
+        // 채팅 메시지 전송 이벤트를 발행한다.
+        domainEventPublisher.publish(new ChatMessageSentEvent(
+                saved.getId(),
+                chatRoom.getId(),
+                senderId,
+                otherMemberId,
+                saved.getType(),
+                saved.getContent()
+        ));
 
         return new ChatMessageResponse(chatRoom.getId(), saved.getId(), saved.getSenderId(), saved.getType(), saved.getContent(), saved.getCreatedAt());
     }
