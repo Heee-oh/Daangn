@@ -11,4 +11,5 @@ public interface MemberQueryService {
     MemberResponse getMe(Long memberId);
     List<MemberRegionResponse> getMyRegions(Long memberId);
     Slice<InterestResponse> getMyInterests(Long memberId, Long lastInterestId,int size);
+    boolean isInterested(Long memberId, Long listingId);
 }

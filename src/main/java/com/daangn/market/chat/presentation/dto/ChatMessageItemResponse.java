@@ -1,11 +1,14 @@
 package com.daangn.market.chat.presentation.dto;
 
 import com.daangn.market.chat.domain.MessageType;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 import java.time.Instant;
 
 public record ChatMessageItemResponse(
         Long messageId,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long senderId,
         MessageType type,
         String content,

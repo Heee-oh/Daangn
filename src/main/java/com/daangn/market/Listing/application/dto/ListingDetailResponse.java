@@ -4,6 +4,8 @@ import com.daangn.market.Listing.domain.HopeLocation;
 import com.daangn.market.Listing.domain.Listing;
 import com.daangn.market.Listing.domain.ListingImage;
 import com.daangn.market.Listing.domain.Price;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.daangn.market.member.domain.Member;
 
 import java.math.BigDecimal;
@@ -13,11 +15,14 @@ import java.util.List;
 
 public record ListingDetailResponse(
         Long listingId,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long sellerId,
         String sellerNickname,
         String sellerProfileImage,
         int sellerMannerTemp,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long buyerId,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long reserverId,
         String title,
         String description,

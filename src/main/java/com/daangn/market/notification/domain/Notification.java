@@ -33,4 +33,13 @@ public class Notification {
 
     @Column(name = "read_at")
     private Instant readAt;
+
+    public static Notification create(Long memberId, NotificationType type) {
+        Notification notification = new Notification();
+        notification.memberId = memberId;
+        notification.type = type;
+        notification.read = false;
+        notification.createdAt = Instant.now();
+        return notification;
+    }
 }

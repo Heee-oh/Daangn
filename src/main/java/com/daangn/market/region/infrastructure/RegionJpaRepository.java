@@ -16,10 +16,14 @@ public interface RegionJpaRepository extends JpaRepository<Region, Integer>, Reg
     @Query(value =
             """
                 SELECT 1
-                FROM region r
-                WHERE r.id = :regionId
-                AND ST_Covers(r.geom, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326))
-                LIMIT 1
+                FROM region
+                WHERE ST_DWithin(
+                    geom,
+                    ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+                    20 -- 오차 범위
+                )
+                AND id = :regionId
+                LIMIT 1;
             """
             , nativeQuery = true)
     Integer covers(Integer regionId, BigDecimal lat, BigDecimal lng);

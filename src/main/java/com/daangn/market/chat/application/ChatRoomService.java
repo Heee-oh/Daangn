@@ -1,6 +1,8 @@
 package com.daangn.market.chat.application;
 
 import com.daangn.market.Listing.infrastructure.ListingJpaRepository;
+import com.daangn.market.common.event.DomainEventPublisher;
+import com.daangn.market.common.event.events.ChatStartedEvent;
 import com.daangn.market.chat.domain.ChatRead;
 import com.daangn.market.chat.domain.ChatRoom;
 import com.daangn.market.chat.domain.ChatRoomStatus;
@@ -20,6 +22,7 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatReadRepository chatReadRepository;
     private final ListingJpaRepository listingJpaRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     @Transactional
     public Long getOrCreateChatRoom(Long listingId, Long buyerId) {
@@ -46,6 +49,14 @@ public class ChatRoomService {
 
         chatReadRepository.save(buyerRead);
         chatReadRepository.save(sellerRead);
+
+        // 채팅방 생성 이벤트를 발행한다.
+        domainEventPublisher.publish(new ChatStartedEvent(
+                savedRoom.getId(),
+                listingId,
+                buyerId,
+                sellerId
+        ));
 
         return savedRoom.getId();
     }
